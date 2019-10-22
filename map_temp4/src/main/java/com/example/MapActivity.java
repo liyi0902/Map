@@ -1,5 +1,6 @@
 package com.example;
 
+import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.location.Location;
@@ -63,6 +64,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private List<AutocompletePrediction> predictionList;
 
     private Location mLastKnowLocation;
+    private double latOfScreenCenter;
+    private double lngOfScreenCenter;
     private LocationCallback locationCallback;
 
     private MaterialSearchBar materialSearchBar;
@@ -70,6 +73,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private Button btnFilter;
 
     private final float DEFAULT_ZOOM = 18;
+    private final int ProximityRadius = 5000;
+//    private List<Address> addresses = new ArrayList<>();   //preserve addresses for search returns
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -101,7 +106,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                     if(materialSearchBar.isSearchEnabled()){
                         materialSearchBar.disableSearch();
                     }
-                    Toast.makeText(MapActivity.this, "the close button is clicked", Toast.LENGTH_SHORT).show();
+//                    Toast.makeText(MapActivity.this, "the close button is clicked", Toast.LENGTH_SHORT).show();
                 }
 
             }
@@ -117,8 +122,56 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             @Override
             public void onSearchConfirmed(CharSequence text) {
                 //change this to search inside app
-                startSearch(text.toString(), true, null, true);
-                Toast.makeText(MapActivity.this, "search confirmed", Toast.LENGTH_SHORT).show();
+//                startSearch(text.toString(), true, null, true);
+//                Toast.makeText(MapActivity.this, "search confirmed", Toast.LENGTH_SHORT).show();
+                String searchString = materialSearchBar.getText();
+                Object[] transeferData = new Object[2];
+                String searchURL = getURL(latOfScreenCenter, lngOfScreenCenter, searchString);
+                transeferData[0] = mMap;
+                transeferData[1] = searchURL;
+                Toast.makeText(MapActivity.this, "get the search text, start search", Toast.LENGTH_SHORT).show();
+
+                GetNearbyPlaces getNearbyPlaces = new GetNearbyPlaces();
+                getNearbyPlaces.execute(transeferData);
+
+                Toast.makeText(MapActivity.this, "Searching for nearby " + searchString, Toast.LENGTH_SHORT).show();
+                mMap.moveCamera(CameraUpdateFactory.zoomTo(12));
+                new Handler().postDelayed(new Runnable() {
+                    @Override
+                    public void run() {
+                        materialSearchBar.clearSuggestions();
+                    }
+                }, 1000);
+
+                //hide the soft keyboard
+                InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(getWindow().getDecorView().getWindowToken(), 0);
+
+
+
+
+//                Geocoder geocoder = new Geocoder(MapActivity.this);
+//                List<Address> addresses = new ArrayList<Address>();
+//                mMap.clear();
+//                try {
+//                    addresses = geocoder.getFromLocationName(searchString, 10);
+//                } catch (IOException e) {
+//                    e.printStackTrace();
+//                }
+//
+//                if(addresses.size() > 0){
+//                    for(int i=0; i<addresses.size(); i++){
+//                        Address address = addresses.get(i);
+//                        address.getLatitude();
+//                        address.getLongitude();
+//                        address.getThoroughfare();
+//                        LatLng latLng = new LatLng(address.getLatitude(), address.getLongitude());
+//                        mMap.addMarker(new MarkerOptions().position(latLng).title(address.getThoroughfare()).
+//                                icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
+//                    }
+//                }else{
+//                    Toast.makeText(MapActivity.this, "Place not found", Toast.LENGTH_SHORT).show();
+//                }
             }
 
             @Override
@@ -210,6 +263,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                         LatLng latLngOfPlace = place.getLatLng();
                         if(latLngOfPlace != null){
                             mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLngOfPlace, DEFAULT_ZOOM));
+                            latOfScreenCenter = latLngOfPlace.latitude;
+                            lngOfScreenCenter = latLngOfPlace.longitude;
                         }
 
                     }
@@ -233,6 +288,19 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             }
         });
 
+    }
+
+
+    private String getURL(double lat, double lng, String place){
+        StringBuilder googleURL = new StringBuilder("https://maps.googleapis.com/maps/api/place/nearbysearch/json?");
+        googleURL.append("location=" + lat + "," + lng);
+        googleURL.append("&radius=" + ProximityRadius);
+        googleURL.append("&keyword=" + place);
+        googleURL.append("&sensor=true");
+        googleURL.append("&key=" + "AIzaSyC23Nfih07UvEoosLJ7f6k148YtxSReE-4");
+
+        Log.d("MapActivity", "url = " + googleURL.toString());
+        return googleURL.toString();
     }
 
     @Override
@@ -318,6 +386,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
                                 new LatLng(mLastKnowLocation.getLatitude(), mLastKnowLocation.getLongitude()),
                                 DEFAULT_ZOOM));
+                        latOfScreenCenter = mLastKnowLocation.getLatitude();
+                        lngOfScreenCenter = mLastKnowLocation.getLongitude();
                     }else{
                         LocationRequest locationRequest = LocationRequest.create();
                         locationRequest.setInterval(10000);
@@ -334,6 +404,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
                                         new LatLng(mLastKnowLocation.getLatitude(), mLastKnowLocation.getLongitude()),
                                         DEFAULT_ZOOM));
+                                latOfScreenCenter = mLastKnowLocation.getLatitude();
+                                lngOfScreenCenter = mLastKnowLocation.getLongitude();
                                 mFusedLocationProviderClient.removeLocationUpdates(locationCallback); //don't know its use, maybe it makes app get location only once
                             }
                         };
