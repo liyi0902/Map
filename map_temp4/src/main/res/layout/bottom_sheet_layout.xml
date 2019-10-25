@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center_horizontal"
+    android:padding="16dp">
+
+
+    <TextView
+        android:id="@+id/text_filter"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Please set the filter of your interests"
+        android:layout_alignParentTop="true"
+        />
+
+    <TextView
+        android:id="@+id/text_price"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Building Price"
+        android:layout_below="@+id/text_filter"
+        android:layout_marginTop="10dp"/>
+
+
+    <SeekBar
+        android:id="@+id/seekBar_price"
+        android:layout_below="@+id/text_filter"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/Widget.AppCompat.SeekBar.Discrete"
+        android:max="5"
+        android:progress="0"
+        android:layout_marginTop="10dp"
+        android:layout_toRightOf="@id/text_price"/>
+
+    <TextView
+        android:id="@+id/text_traffic"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Traffic Condition"
+        android:layout_below="@+id/text_price"
+        android:layout_marginTop="10dp"/>
+
+    <SeekBar
+        android:id="@+id/seekBar_traffic"
+        android:layout_below="@+id/text_price"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/Widget.AppCompat.SeekBar.Discrete"
+        android:max="5"
+        android:progress="0"
+        android:layout_marginTop="10dp"
+        android:layout_toRightOf="@id/text_traffic"/>
+
+    <Button
+        android:layout_alignParentBottom="true"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="COMFIRM"
+        android:id="@+id/btn_confirm"
+        android:background="@color/colorPrimary"
+        android:textColor="#ffffff"/>
+
+</RelativeLayout>

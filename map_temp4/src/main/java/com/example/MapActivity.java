@@ -56,7 +56,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class MapActivity extends AppCompatActivity implements OnMapReadyCallback {
+public class MapActivity extends AppCompatActivity implements OnMapReadyCallback, BottomSheetDialog.BottomSheetListener {
 
     private GoogleMap mMap;
     private FusedLocationProviderClient mFusedLocationProviderClient;
@@ -93,6 +93,16 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         Places.initialize(MapActivity.this, "AIzaSyC23Nfih07UvEoosLJ7f6k148YtxSReE-4");
         placeClient = Places.createClient(this);
         final AutocompleteSessionToken token = AutocompleteSessionToken.newInstance();
+
+        btnFilter = findViewById(R.id.btn_filter);
+
+        btnFilter.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                BottomSheetDialog bottomSheetDialog = new BottomSheetDialog();
+                bottomSheetDialog.show(getSupportFragmentManager(), "BottomSheet");
+            }
+        });
 
         ImageView floatingCloseButton = findViewById(R.id.mt_clear);
         floatingCloseButton.setOnClickListener(new View.OnClickListener() {
@@ -416,5 +426,10 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 }
             }
         });
+    }
+
+    @Override
+    public void onButtomClicked(String text) {
+
     }
 }
