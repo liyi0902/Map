@@ -12,26 +12,39 @@
         android:layout_height="wrap_content"
         android:text="Please set the filter of your interests"
         android:layout_alignParentTop="true"
-        />
+        android:textSize="20sp"
+        android:gravity="center" />
+
+    <TextView
+        android:id="@+id/text_factors_question"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="How do you care about these factors?"
+        android:layout_below="@+id/text_filter"
+        android:layout_marginTop="10dp"
+        android:textSize="15sp"
+        android:gravity="center"/>
+
 
     <TextView
         android:id="@+id/text_price"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Building Price"
-        android:layout_below="@+id/text_filter"
+        android:textSize="18sp"
+        android:layout_below="@+id/text_factors_question"
         android:layout_marginTop="10dp"/>
 
 
     <SeekBar
         android:id="@+id/seekBar_price"
-        android:layout_below="@+id/text_filter"
+        android:layout_below="@+id/text_factors_question"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         style="@style/Widget.AppCompat.SeekBar.Discrete"
         android:max="5"
         android:progress="0"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="14dp"
         android:layout_toRightOf="@id/text_price"/>
 
     <TextView
@@ -39,6 +52,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Traffic Condition"
+        android:textSize="18sp"
         android:layout_below="@+id/text_price"
         android:layout_marginTop="10dp"/>
 
@@ -50,16 +64,201 @@
         style="@style/Widget.AppCompat.SeekBar.Discrete"
         android:max="5"
         android:progress="0"
-        android:layout_marginTop="10dp"
+        android:layout_marginTop="14dp"
         android:layout_toRightOf="@id/text_traffic"/>
 
-    <Button
-        android:layout_alignParentBottom="true"
+    <TextView
+        android:id="@+id/text_rent"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:text="Average Rent"
+        android:textSize="18sp"
+        android:layout_below="@+id/text_traffic"
+        android:layout_marginTop="10dp"/>
+
+    <SeekBar
+        android:id="@+id/seekBar_rent"
+        android:layout_below="@+id/text_traffic"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/Widget.AppCompat.SeekBar.Discrete"
+        android:max="5"
+        android:progress="0"
+        android:layout_marginTop="14dp"
+        android:layout_toRightOf="@id/text_rent"/>
+
+    <TextView
+        android:id="@+id/text_income"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Median Income"
+        android:textSize="18sp"
+        android:layout_below="@+id/text_rent"
+        android:layout_marginTop="10dp"/>
+
+    <SeekBar
+        android:id="@+id/seekBar_income"
+        android:layout_below="@+id/text_rent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/Widget.AppCompat.SeekBar.Discrete"
+        android:max="5"
+        android:progress="0"
+        android:layout_marginTop="14dp"
+        android:layout_toRightOf="@id/text_income"/>
+
+    <TextView
+        android:id="@+id/text_education"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Children Education"
+        android:textSize="18sp"
+        android:layout_below="@+id/text_income"
+        android:layout_marginTop="10dp"/>
+
+    <SeekBar
+        android:id="@+id/seekBar_education"
+        android:layout_below="@+id/text_income"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/Widget.AppCompat.SeekBar.Discrete"
+        android:max="5"
+        android:progress="0"
+        android:layout_marginTop="14dp"
+        android:layout_toRightOf="@id/text_education"/>
+
+    <TextView
+        android:id="@+id/text_immigrant"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Immigrants"
+        android:textSize="18sp"
+        android:layout_below="@+id/text_education"
+        android:layout_marginTop="10dp"/>
+
+    <SeekBar
+        android:id="@+id/seekBar_immigrant"
+        android:layout_below="@+id/text_education"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/Widget.AppCompat.SeekBar.Discrete"
+        android:max="5"
+        android:progress="0"
+        android:layout_marginTop="14dp"
+        android:layout_toRightOf="@id/text_immigrant"/>
+
+    <TextView
+        android:id="@+id/text_religion_question"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Do you take religion seriously?"
+        android:layout_below="@+id/text_immigrant"
+        android:layout_marginTop="20dp"
+        android:textSize="15sp"
+        android:gravity="center"/>
+
+
+    <Button
+        android:id="@+id/choose_christrian"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:text="Christian"
+        android:layout_below="@id/text_religion_question"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="35dp"
+        android:background="@color/notSelected"
+        android:onClick="chooseReligion"/>
+
+    <Button
+        android:id="@+id/choose_buddhism"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:text="Buddhism"
+        android:layout_toRightOf="@+id/choose_christrian"
+        android:layout_below="@+id/text_religion_question"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="5dp"
+        android:background="@color/notSelected"
+        android:onClick="chooseReligion"/>
+
+    <Button
+        android:id="@+id/choose_hinduism"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:text="Hinduism"
+        android:layout_toRightOf="@+id/choose_buddhism"
+        android:layout_below="@+id/text_religion_question"
+        android:layout_marginTop="10dp"
+        android:layout_marginLeft="5dp"
+        android:background="@color/notSelected"
+        android:onClick="chooseReligion"/>
+
+    <Button
+        android:id="@+id/choose_judaism"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:text="Judaism"
+        android:layout_below="@id/choose_christrian"
+        android:layout_marginTop="5dp"
+        android:layout_marginLeft="35dp"
+        android:background="@color/notSelected"
+        android:onClick="chooseReligion"/>
+
+    <Button
+        android:id="@+id/choose_islam"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:text="Islam"
+        android:layout_toRightOf="@+id/choose_judaism"
+        android:layout_below="@+id/choose_buddhism"
+        android:layout_marginTop="5dp"
+        android:layout_marginLeft="5dp"
+        android:background="@color/notSelected"
+        android:onClick="chooseReligion"/>
+
+    <Button
+        android:id="@+id/choose_others"
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:text="Others"
+        android:layout_toRightOf="@+id/choose_islam"
+        android:layout_below="@+id/choose_hinduism"
+        android:layout_marginTop="5dp"
+        android:background="@color/notSelected"
+        android:layout_marginLeft="5dp"/>
+
+    <Button
+        android:id="@+id/btn_cancel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="CANCEL"
+        android:layout_alignParentRight="true"
+        android:background="#E2DEDE"
+        android:layout_below="@+id/choose_others"
+        android:layout_marginTop="25dp"/>
+
+
+    <Button
+        android:layout_toLeftOf="@+id/btn_cancel"
+        android:layout_below="@+id/choose_others"
+        android:layout_marginTop="25dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginRight="10dp"
         android:text="COMFIRM"
         android:id="@+id/btn_confirm"
         android:background="@color/colorPrimary"
         android:textColor="#ffffff"/>
+
+
+    <TextView
+        android:id="@+id/text_save"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="save my option"
+        android:layout_toLeftOf="@+id/btn_confirm"
+        android:layout_below="@+id/choose_others"
+        android:layout_marginTop="37dp"
+        android:layout_marginRight="15dp"/>
 
 </RelativeLayout>

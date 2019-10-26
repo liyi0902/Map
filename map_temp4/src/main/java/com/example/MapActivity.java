@@ -54,6 +54,7 @@ import com.mancj.materialsearchbar.adapter.SuggestionsAdapter;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 public class MapActivity extends AppCompatActivity implements OnMapReadyCallback, BottomSheetDialog.BottomSheetListener {
@@ -93,6 +94,9 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         Places.initialize(MapActivity.this, "AIzaSyC23Nfih07UvEoosLJ7f6k148YtxSReE-4");
         placeClient = Places.createClient(this);
         final AutocompleteSessionToken token = AutocompleteSessionToken.newInstance();
+
+        Intent intent = new Intent(this, DataPrepareService.class);
+        startService(intent);
 
         btnFilter = findViewById(R.id.btn_filter);
 
@@ -298,6 +302,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             }
         });
 
+
+
     }
 
 
@@ -429,7 +435,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     }
 
     @Override
-    public void onButtomClicked(String text) {
-
+    public void onButtomClicked(HashMap<String, String> result) {
+        Toast.makeText(this, "get price " + result.get("price"), Toast.LENGTH_SHORT).show();
     }
 }
