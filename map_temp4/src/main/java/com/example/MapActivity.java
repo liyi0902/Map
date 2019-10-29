@@ -526,7 +526,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             //HashMap<String, String> temp;
             Menu menu = navigationView.getMenu();
             for(int i=0; i<savedOptions.size(); i++){
-                menu.add("my collection " + String.valueOf(i+1));
+                menu.add(0,  i, 0,"my collection " + String.valueOf(i+1));
             }
 
         }else{
@@ -561,9 +561,10 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     }
 
     @Override
-    public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+    public boolean onNavigationItemSelected(@NonNull final MenuItem menuItem) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        final int index = menuItem.getItemId();
+        int index = menuItem.getItemId();
+        Toast.makeText(this, "the id is" + index, Toast.LENGTH_SHORT).show();
         HashMap<String, String> temp = savedOptions.get(index);
         StringBuilder message = new StringBuilder();
         if(!temp.get("housePrice").equals("0")){
@@ -601,6 +602,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         builder.setPositiveButton("open in filter", new DialogInterface.OnClickListener(){
             @Override
             public void onClick(DialogInterface dialog, int which) {
+                int index = menuItem.getItemId();
                 mDrawerLayout.closeDrawer(Gravity.RIGHT);
                 activateBottomSheet(index);
             }
@@ -609,6 +611,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         builder.setNegativeButton("delete", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
+                int index = menuItem.getItemId();
                 deleteItemInNavigation(index);
             }
         });
@@ -625,7 +628,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         Menu menu = navigationView.getMenu();
         menu.clear();
         for(int i=0; i<savedOptions.size(); i++){
-            menu.add("my collection " + String.valueOf(i+1));
+            menu.add(0, i, 0, "my collection " + String.valueOf(i+1));
         }
         saveNavigationData();
     }
