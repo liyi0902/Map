@@ -3,7 +3,8 @@
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:gravity="center_horizontal"
-    android:padding="16dp">
+    android:padding="16dp"
+    android:id="@+id/bottom_sheet">
 
 
     <TextView
@@ -27,17 +28,16 @@
 
 
     <TextView
-        android:id="@+id/text_price"
+        android:id="@+id/text_house_price"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Building Price"
+        android:text="House Price"
         android:textSize="18sp"
         android:layout_below="@+id/text_factors_question"
         android:layout_marginTop="10dp"/>
 
-
     <SeekBar
-        android:id="@+id/seekBar_price"
+        android:id="@+id/seekBar_house_price"
         android:layout_below="@+id/text_factors_question"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -45,7 +45,28 @@
         android:max="5"
         android:progress="0"
         android:layout_marginTop="14dp"
-        android:layout_toRightOf="@id/text_price"/>
+        android:layout_toRightOf="@id/text_house_price"/>
+
+    <TextView
+        android:id="@+id/text_unit_price"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Unit Price"
+        android:textSize="18sp"
+        android:layout_below="@+id/text_house_price"
+        android:layout_marginTop="10dp"/>
+
+
+    <SeekBar
+        android:id="@+id/seekBar_unit_price"
+        android:layout_below="@+id/text_house_price"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/Widget.AppCompat.SeekBar.Discrete"
+        android:max="5"
+        android:progress="0"
+        android:layout_marginTop="14dp"
+        android:layout_toRightOf="@id/text_unit_price"/>
 
     <TextView
         android:id="@+id/text_traffic"
@@ -53,12 +74,12 @@
         android:layout_height="wrap_content"
         android:text="Traffic Condition"
         android:textSize="18sp"
-        android:layout_below="@+id/text_price"
+        android:layout_below="@+id/text_unit_price"
         android:layout_marginTop="10dp"/>
 
     <SeekBar
         android:id="@+id/seekBar_traffic"
-        android:layout_below="@+id/text_price"
+        android:layout_below="@+id/text_unit_price"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         style="@style/Widget.AppCompat.SeekBar.Discrete"
@@ -68,16 +89,16 @@
         android:layout_toRightOf="@id/text_traffic"/>
 
     <TextView
-        android:id="@+id/text_rent"
+        android:id="@+id/text_house_rent"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Average Rent"
+        android:text="House Rent"
         android:textSize="18sp"
         android:layout_below="@+id/text_traffic"
         android:layout_marginTop="10dp"/>
 
     <SeekBar
-        android:id="@+id/seekBar_rent"
+        android:id="@+id/seekBar_house_rent"
         android:layout_below="@+id/text_traffic"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -85,7 +106,27 @@
         android:max="5"
         android:progress="0"
         android:layout_marginTop="14dp"
-        android:layout_toRightOf="@id/text_rent"/>
+        android:layout_toRightOf="@id/text_house_rent"/>
+
+    <TextView
+        android:id="@+id/text_unit_rent"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Unit Rent"
+        android:textSize="18sp"
+        android:layout_below="@+id/text_house_rent"
+        android:layout_marginTop="10dp"/>
+
+    <SeekBar
+        android:id="@+id/seekBar_unit_rent"
+        android:layout_below="@+id/text_house_rent"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        style="@style/Widget.AppCompat.SeekBar.Discrete"
+        android:max="5"
+        android:progress="0"
+        android:layout_marginTop="14dp"
+        android:layout_toRightOf="@id/text_unit_rent"/>
 
     <TextView
         android:id="@+id/text_income"
@@ -93,12 +134,12 @@
         android:layout_height="wrap_content"
         android:text="Median Income"
         android:textSize="18sp"
-        android:layout_below="@+id/text_rent"
+        android:layout_below="@+id/text_unit_rent"
         android:layout_marginTop="10dp"/>
 
     <SeekBar
         android:id="@+id/seekBar_income"
-        android:layout_below="@+id/text_rent"
+        android:layout_below="@+id/text_unit_rent"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         style="@style/Widget.AppCompat.SeekBar.Discrete"

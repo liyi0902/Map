@@ -1,6 +1,7 @@
 package com.example;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.location.Location;
@@ -9,6 +10,9 @@ import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -18,7 +22,9 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.drawerlayout.widget.DrawerLayout;
 
 import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.ResolvableApiException;
@@ -49,15 +55,24 @@ import com.google.android.libraries.places.api.net.FetchPlaceResponse;
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsRequest;
 import com.google.android.libraries.places.api.net.FindAutocompletePredictionsResponse;
 import com.google.android.libraries.places.api.net.PlacesClient;
+import com.google.android.material.navigation.NavigationView;
 import com.mancj.materialsearchbar.MaterialSearchBar;
 import com.mancj.materialsearchbar.adapter.SuggestionsAdapter;
 
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 
-public class MapActivity extends AppCompatActivity implements OnMapReadyCallback, BottomSheetDialog.BottomSheetListener {
+public class MapActivity extends AppCompatActivity implements OnMapReadyCallback,
+        BottomSheetDialog.BottomSheetListener,
+        NavigationView.OnNavigationItemSelectedListener{
 
     private GoogleMap mMap;
     private FusedLocationProviderClient mFusedLocationProviderClient;
@@ -75,6 +90,16 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
     private final float DEFAULT_ZOOM = 18;
     private final int ProximityRadius = 5000;
+
+    private ImageView ic_favorite;
+    private DrawerLayout mDrawerLayout;
+
+    private ArrayList<HashMap<String, String>> savedOptions;
+    private final String LOCAL_FILE = "mCollections";
+    private NavigationView navigationView;
+
+
+
 //    private List<Address> addresses = new ArrayList<>();   //preserve addresses for search returns
 
     @Override
@@ -95,15 +120,21 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         placeClient = Places.createClient(this);
         final AutocompleteSessionToken token = AutocompleteSessionToken.newInstance();
 
-        Intent intent = new Intent(this, DataPrepareService.class);
-        startService(intent);
-
-        btnFilter = findViewById(R.id.btn_filter);
+//        Intent intent = new Intent(this, DataPrepareService.class);
+//        startService(intent);
+//
+//        btnFilter = findViewById(R.id.btn_filter);
+        navigationView = findViewById(R.id.navigation);
+        prepareNavigationData();
+        navigationView.setNavigationItemSelectedListener(this);
 
         btnFilter.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 BottomSheetDialog bottomSheetDialog = new BottomSheetDialog();
+                Bundle bundle = new Bundle();
+                bundle.putSerializable("savedOptions", savedOptions);
+                bottomSheetDialog.setArguments(bundle);
                 bottomSheetDialog.show(getSupportFragmentManager(), "BottomSheet");
             }
         });
@@ -302,6 +333,16 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             }
         });
 
+        mDrawerLayout = findViewById(R.id.mDrawerLayout);
+        ic_favorite = findViewById(R.id.ic_favorite);
+        ic_favorite.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //DrawerLayout mDrawerLayout = findViewById(R.id.navigation);
+                mDrawerLayout.openDrawer(Gravity.RIGHT);
+            }
+        });
+
 
 
     }
@@ -332,7 +373,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)locationButton.getLayoutParams();
             layoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP, 0);
             layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
-            layoutParams.setMargins(0, 0, 40, 180);
+            layoutParams.setMargins(0, 0, 40, 200);
 
         }
 
@@ -435,7 +476,230 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     }
 
     @Override
-    public void onButtomClicked(HashMap<String, String> result) {
-        Toast.makeText(this, "get price " + result.get("price"), Toast.LENGTH_SHORT).show();
+    public void onButtomClicked(HashMap<String, String> result, String command) {
+        switch(command){
+            case "save":
+                savedOptions.add(result);
+                navigationView.getMenu().add("my collection " + savedOptions.size());
+                saveNavigationData();
+                Toast.makeText(MapActivity.this, "saved setting successful", Toast.LENGTH_SHORT).show();
+                break;
+        }
+        //Toast.makeText(this, "get price " + result.get("price"), Toast.LENGTH_SHORT).show();
+    }
+
+    public void onBackPressed(){
+        if(mDrawerLayout.isDrawerOpen(Gravity.RIGHT)){
+            mDrawerLayout.closeDrawer(Gravity.RIGHT);
+        }else{
+            super.onBackPressed();
+        }
+    }
+
+    public void prepareNavigationData(){
+        FileInputStream fileInputStream = null;
+        ObjectInputStream objectInputStream = null;
+        try {
+            fileInputStream = new FileInputStream(LOCAL_FILE);
+            objectInputStream = new ObjectInputStream(fileInputStream);
+            savedOptions = (ArrayList<HashMap<String, String>>) objectInputStream.readObject();
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (ClassNotFoundException e) {
+            e.printStackTrace();
+        }finally {
+            try{
+                if(objectInputStream != null){
+                    objectInputStream.close();
+                }
+                if(fileInputStream != null){
+                    fileInputStream.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        if(savedOptions != null){
+            //HashMap<String, String> temp;
+            Menu menu = navigationView.getMenu();
+            for(int i=0; i<savedOptions.size(); i++){
+                menu.add("my collection " + String.valueOf(i+1));
+            }
+
+        }else{
+            savedOptions = new ArrayList<>();
+        }
+    }
+
+    public void saveNavigationData(){
+        FileOutputStream fileOutputStream = null;
+        ObjectOutputStream objectOutputStream = null;
+        try {
+            fileOutputStream = new FileOutputStream(LOCAL_FILE);
+            objectOutputStream = new ObjectOutputStream(fileOutputStream);
+            objectOutputStream.writeObject(savedOptions);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }finally {
+            try{
+                if(objectOutputStream != null){
+                    objectOutputStream.close();
+                }
+                if(fileOutputStream != null){
+                    fileOutputStream.close();
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem menuItem) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        final int index = menuItem.getItemId();
+        HashMap<String, String> temp = savedOptions.get(index);
+        StringBuilder message = new StringBuilder();
+        if(!temp.get("housePrice").equals("0")){
+            message.append("housePrice: " + temp.get("housePrice") + "/n");
+        }
+        if(!temp.get("unitPrice").equals("0")){
+            message.append("unitPrice: " + temp.get("unitPrice") + "/n" );
+        }
+        if(!temp.get("traffic").equals("0")){
+            message.append("traffic: " + temp.get("traffic") + "/n" );
+        }
+        if(!temp.get("houseRent").equals("0")){
+            message.append("houseRent: " + temp.get("houseRent") + "/n" );
+        }
+        if(!temp.get("unitRent").equals("0")){
+            message.append("unitRent: " + temp.get("unitRent") + "/n" );
+        }
+        if(!temp.get("income").equals("0")){
+            message.append("income: " + temp.get("income") + "/n" );
+        }
+        if(!temp.get("education").equals("0")){
+            message.append("education: " + temp.get("education") + "/n" );
+        }
+        if(!temp.get("immigrant").equals("0")){
+            message.append("immigrant: " + temp.get("immigrant") + "/n" );
+        }
+        if(temp.get("religion")!=null){
+            message.append("religion: " + temp.get("religion") + "/n" );
+        }
+
+        builder.setMessage(message);
+        builder.setTitle(menuItem.getTitle());
+
+        builder.setPositiveButton("open in filter", new DialogInterface.OnClickListener(){
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                mDrawerLayout.closeDrawer(Gravity.RIGHT);
+                activateBottomSheet(index);
+            }
+        });
+
+        builder.setNegativeButton("delete", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                deleteItemInNavigation(index);
+            }
+        });
+
+        AlertDialog alertDialog = builder.create();
+        alertDialog.show();
+
+        Toast.makeText(MapActivity.this, "id is " + menuItem.getItemId(), Toast.LENGTH_SHORT).show();
+        return false;
+    }
+
+    public void deleteItemInNavigation(int index){
+        savedOptions.remove(index);
+        Menu menu = navigationView.getMenu();
+        menu.clear();
+        for(int i=0; i<savedOptions.size(); i++){
+            menu.add("my collection " + String.valueOf(i+1));
+        }
+        saveNavigationData();
+    }
+
+    public void activateBottomSheet(int index){
+        HashMap<String, String> temp = savedOptions.get(index);
+        BottomSheetDialog bottomSheetDialog = new BottomSheetDialog();
+        Bundle bundle = new Bundle();
+        bundle.putSerializable("selectedItem", temp);
+        bottomSheetDialog.setArguments(bundle);
+
+//        if(!temp.get("housePrice").equals("0")){
+//            SeekBar sb_house_price = findViewById(R.id.seekBar_house_price);
+//            sb_house_price.setProgress(Integer.parseInt(temp.get("housePrice")));
+//        }
+//        if(!temp.get("unitPrice").equals("0")){
+//            SeekBar sb_unit_price = findViewById(R.id.seekBar_unit_price);
+//            sb_unit_price.setProgress(Integer.parseInt(temp.get("unitPrice")));
+//        }
+//        if(!temp.get("traffic").equals("0")){
+//            SeekBar sb_traffic = findViewById(R.id.seekBar_traffic);
+//            sb_traffic.setProgress(Integer.parseInt(temp.get("traffic")));
+//        }
+//        if(!temp.get("houseRent").equals("0")){
+//            SeekBar sb_house_rent = findViewById(R.id.seekBar_house_rent);
+//            sb_house_rent.setProgress(Integer.parseInt(temp.get("houseRent")));
+//        }
+//        if(!temp.get("unitRent").equals("0")){
+//            SeekBar sb_unit_rent = findViewById(R.id.seekBar_unit_rent);
+//            sb_unit_rent.setProgress(Integer.parseInt(temp.get("unitRent")));
+//        }
+//        if(!temp.get("income").equals("0")){
+//            SeekBar sb_income = findViewById(R.id.seekBar_income);
+//            sb_income.setProgress(Integer.parseInt(temp.get("income")));
+//        }
+//        if(!temp.get("education").equals("0")){
+//            SeekBar sb_education = findViewById(R.id.seekBar_education);
+//            sb_education.setProgress(Integer.parseInt(temp.get("education")));
+//        }
+//        if(!temp.get("immigrant").equals("0")){
+//            SeekBar sb_immigrants = findViewById(R.id.seekBar_immigrant);
+//            sb_immigrants.setProgress(Integer.parseInt(temp.get("immigrant")));
+//        }
+//        if(temp.get("religion") != null){
+//            switch (temp.get("religion")){
+//                case "christian":
+//                    Button btn_christian = findViewById(R.id.choose_christrian);
+//                    btn_christian.setBackgroundResource(R.color.selected);
+//                    break;
+//                case "buddhism":
+//                    Button btn_buddhism = findViewById(R.id.choose_buddhism);
+//                    btn_buddhism.setBackgroundResource(R.color.selected);
+//                    break;
+//                case "hinduism":
+//                    Button btn_hinduism = findViewById(R.id.choose_hinduism);
+//                    btn_hinduism.setBackgroundResource(R.color.selected);
+//                    break;
+//                case "judasim":
+//                    Button btn_judaism = findViewById(R.id.choose_judaism);
+//                    btn_judaism.setBackgroundResource(R.color.selected);
+//                    break;
+//                case "islam":
+//                    Button btn_islam = findViewById(R.id.choose_islam);
+//                    btn_islam.setBackgroundResource(R.color.selected);
+//                    break;
+//                case "others":
+//                    Button btn_others = findViewById(R.id.choose_others);
+//                    btn_others.setBackgroundResource(R.color.selected);
+//                    break;
+//            }
+//        }
+
+
+        bottomSheetDialog.show(getSupportFragmentManager(), "BottomSheet");
+
+
+
     }
 }
