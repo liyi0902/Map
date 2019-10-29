@@ -95,7 +95,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private DrawerLayout mDrawerLayout;
 
     private ArrayList<HashMap<String, String>> savedOptions;
-    private final String LOCAL_FILE = "mCollections";
+    private final String LOCAL_FILE = "mCollections.txt";
     private NavigationView navigationView;
 
 
@@ -500,7 +500,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         FileInputStream fileInputStream = null;
         ObjectInputStream objectInputStream = null;
         try {
-            fileInputStream = new FileInputStream(LOCAL_FILE);
+            fileInputStream = openFileInput(LOCAL_FILE);
             objectInputStream = new ObjectInputStream(fileInputStream);
             savedOptions = (ArrayList<HashMap<String, String>>) objectInputStream.readObject();
         } catch (FileNotFoundException e) {
@@ -538,7 +538,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         FileOutputStream fileOutputStream = null;
         ObjectOutputStream objectOutputStream = null;
         try {
-            fileOutputStream = new FileOutputStream(LOCAL_FILE);
+            fileOutputStream = openFileOutput(LOCAL_FILE, MODE_PRIVATE);
             objectOutputStream = new ObjectOutputStream(fileOutputStream);
             objectOutputStream.writeObject(savedOptions);
         } catch (FileNotFoundException e) {
@@ -557,6 +557,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 e.printStackTrace();
             }
         }
+        Toast.makeText(this, "saved file successful", Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -566,33 +567,34 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         HashMap<String, String> temp = savedOptions.get(index);
         StringBuilder message = new StringBuilder();
         if(!temp.get("housePrice").equals("0")){
-            message.append("housePrice: " + temp.get("housePrice") + "/n");
+            message.append("housePrice: " + temp.get("housePrice") + "\n");
         }
         if(!temp.get("unitPrice").equals("0")){
-            message.append("unitPrice: " + temp.get("unitPrice") + "/n" );
+            message.append("unitPrice: " + temp.get("unitPrice") + "\n" );
         }
         if(!temp.get("traffic").equals("0")){
-            message.append("traffic: " + temp.get("traffic") + "/n" );
+            message.append("traffic: " + temp.get("traffic") + "\n" );
         }
         if(!temp.get("houseRent").equals("0")){
-            message.append("houseRent: " + temp.get("houseRent") + "/n" );
+            message.append("houseRent: " + temp.get("houseRent") + "\n" );
         }
         if(!temp.get("unitRent").equals("0")){
-            message.append("unitRent: " + temp.get("unitRent") + "/n" );
+            message.append("unitRent: " + temp.get("unitRent") + "\n" );
         }
         if(!temp.get("income").equals("0")){
-            message.append("income: " + temp.get("income") + "/n" );
+            message.append("income: " + temp.get("income") + "\n" );
         }
         if(!temp.get("education").equals("0")){
-            message.append("education: " + temp.get("education") + "/n" );
+            message.append("education: " + temp.get("education") + "\n" );
         }
         if(!temp.get("immigrant").equals("0")){
-            message.append("immigrant: " + temp.get("immigrant") + "/n" );
+            message.append("immigrant: " + temp.get("immigrant") + "\n" );
         }
         if(temp.get("religion")!=null){
-            message.append("religion: " + temp.get("religion") + "/n" );
+            message.append("religion: " + temp.get("religion") + "\n" );
         }
 
+        message.deleteCharAt(message.length() - 1);
         builder.setMessage(message);
         builder.setTitle(menuItem.getTitle());
 
@@ -614,7 +616,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         AlertDialog alertDialog = builder.create();
         alertDialog.show();
 
-        Toast.makeText(MapActivity.this, "id is " + menuItem.getItemId(), Toast.LENGTH_SHORT).show();
+       // Toast.makeText(MapActivity.this, "id is " + menuItem.getItemId(), Toast.LENGTH_SHORT).show();
         return false;
     }
 
@@ -634,72 +636,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         Bundle bundle = new Bundle();
         bundle.putSerializable("selectedItem", temp);
         bottomSheetDialog.setArguments(bundle);
-
-//        if(!temp.get("housePrice").equals("0")){
-//            SeekBar sb_house_price = findViewById(R.id.seekBar_house_price);
-//            sb_house_price.setProgress(Integer.parseInt(temp.get("housePrice")));
-//        }
-//        if(!temp.get("unitPrice").equals("0")){
-//            SeekBar sb_unit_price = findViewById(R.id.seekBar_unit_price);
-//            sb_unit_price.setProgress(Integer.parseInt(temp.get("unitPrice")));
-//        }
-//        if(!temp.get("traffic").equals("0")){
-//            SeekBar sb_traffic = findViewById(R.id.seekBar_traffic);
-//            sb_traffic.setProgress(Integer.parseInt(temp.get("traffic")));
-//        }
-//        if(!temp.get("houseRent").equals("0")){
-//            SeekBar sb_house_rent = findViewById(R.id.seekBar_house_rent);
-//            sb_house_rent.setProgress(Integer.parseInt(temp.get("houseRent")));
-//        }
-//        if(!temp.get("unitRent").equals("0")){
-//            SeekBar sb_unit_rent = findViewById(R.id.seekBar_unit_rent);
-//            sb_unit_rent.setProgress(Integer.parseInt(temp.get("unitRent")));
-//        }
-//        if(!temp.get("income").equals("0")){
-//            SeekBar sb_income = findViewById(R.id.seekBar_income);
-//            sb_income.setProgress(Integer.parseInt(temp.get("income")));
-//        }
-//        if(!temp.get("education").equals("0")){
-//            SeekBar sb_education = findViewById(R.id.seekBar_education);
-//            sb_education.setProgress(Integer.parseInt(temp.get("education")));
-//        }
-//        if(!temp.get("immigrant").equals("0")){
-//            SeekBar sb_immigrants = findViewById(R.id.seekBar_immigrant);
-//            sb_immigrants.setProgress(Integer.parseInt(temp.get("immigrant")));
-//        }
-//        if(temp.get("religion") != null){
-//            switch (temp.get("religion")){
-//                case "christian":
-//                    Button btn_christian = findViewById(R.id.choose_christrian);
-//                    btn_christian.setBackgroundResource(R.color.selected);
-//                    break;
-//                case "buddhism":
-//                    Button btn_buddhism = findViewById(R.id.choose_buddhism);
-//                    btn_buddhism.setBackgroundResource(R.color.selected);
-//                    break;
-//                case "hinduism":
-//                    Button btn_hinduism = findViewById(R.id.choose_hinduism);
-//                    btn_hinduism.setBackgroundResource(R.color.selected);
-//                    break;
-//                case "judasim":
-//                    Button btn_judaism = findViewById(R.id.choose_judaism);
-//                    btn_judaism.setBackgroundResource(R.color.selected);
-//                    break;
-//                case "islam":
-//                    Button btn_islam = findViewById(R.id.choose_islam);
-//                    btn_islam.setBackgroundResource(R.color.selected);
-//                    break;
-//                case "others":
-//                    Button btn_others = findViewById(R.id.choose_others);
-//                    btn_others.setBackgroundResource(R.color.selected);
-//                    break;
-//            }
-//        }
-
-
         bottomSheetDialog.show(getSupportFragmentManager(), "BottomSheet");
-
-
-
     }
 }
