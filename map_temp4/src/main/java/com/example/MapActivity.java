@@ -499,13 +499,14 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 break;
             case "confirm":
                 DBActivity dbActivity = new DBActivity();
-                ArrayList<String[]> returnedResult = dbActivity.filterRequest(result);
+                HashMap<String, String> returnedResult = dbActivity.filterRequest(result);
                 if(returnedResult.size() == 0){
                     Toast.makeText(this, "cannot find a proper area", Toast.LENGTH_LONG).show();
                 }else{
                     mMap.clear();
+                    mMap.setInfoWindowAdapter(new CustomInfoWindowAdapter(MapActivity.this));
 
-                    String sa2_code = returnedResult.get(0)[0];
+                    String sa2_code = returnedResult.get("sa2_main16");
                     ArrayList<float[]> polygonShape = dbActivity.polygonRequest(sa2_code);
                     float[] temp;
                     ArrayList<LatLng> polygonCoordinates = new ArrayList<>();
@@ -523,15 +524,15 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
                     Polygon polygon1 = mMap.addPolygon(polygonOptions);
                     mPolygonOptions = polygonOptions;
-                    //polygon1.setFillColor(R.color.selected);
+//                    polygon1.setFillColor(Color.);
 
                     LatLng latLng = getPolygonCenterPoint(polygonCoordinates);
                     mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
                             new LatLng(latLng.latitude, latLng.longitude),
-                            14));
-                    String content = getFilterContent(result);
+                            13));
+                    String content = getSelectedAreaInfo(returnedResult, result);
                     mMap.addMarker(new MarkerOptions().position(latLng)
-                            .title("distinct name")
+                            .title(returnedResult.get("sa2_name16"))
                             .snippet(content));
                     latOfScreenCenter = latLng.latitude;
                     lngOfScreenCenter = latLng.longitude;
@@ -713,4 +714,76 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
         return content.toString();
     }
+
+    private String getSelectedAreaInfo(HashMap<String, String> hashMap, HashMap<String, String> filter){
+        StringBuilder content = new StringBuilder();
+        if(!hashMap.get("h_sale_price").equals("0")){
+            content.append("Average house price: " + hashMap.get("h_sale_price") + "$" + "\n");
+        }
+        if(!hashMap.get("u_sale_price").equals("0")){
+            content.append("Average unit price: " + hashMap.get("u_sale_price") + "$" + "\n" );
+        }
+        if(!hashMap.get("vehicle_num").equals("0")){
+            content.append("Vehicle quantity: " + hashMap.get("vehicle_num") + "\n" );
+        }
+        if(!hashMap.get("h_rent_price").equals("0")){
+            content.append("Average house rent: " + hashMap.get("h_rent_price") + "$/week" + "\n" );
+        }
+        if(!hashMap.get("u_rent_price").equals("0")){
+            content.append("Average unit rent: " + hashMap.get("u_rent_price") + "$/week" + "\n" );
+        }
+        if(!hashMap.get("median_income").equals("0")){
+            content.append("Median income: " + hashMap.get("median_income") + "$" + "\n" );
+        }
+        if(!hashMap.get("children_education").equals("0")){
+            content.append("Education quality: " + hashMap.get("children_education") + "\n" );
+        }
+        if(!hashMap.get("immi_not_citizen").equals("0")){
+            content.append("Immigrant: " + hashMap.get("immi_not_citizen") + "%" + "\n" );
+        }
+
+        if(filter.get("religion") != null){
+            String key = filter.get("religion");
+            switch (key){
+                case "christian":
+                    content.append("Christian: " + hashMap.get("christian_pr100") + "%" + "\n" );
+                    break;
+                case "buddhism":
+                    content.append("Buddhism: " + hashMap.get("buddhism_pr100") + "%" + "\n" );
+                    break;
+                case "hinduism":
+                    content.append("Hinduism: " + hashMap.get("hinduism_pr100") + "%" + "\n" );
+                    break;
+                case "judasim":
+                    content.append("Judaism: " + hashMap.get("judaism_pr100") + "%" + "\n" );
+                    break;
+                case "islam":
+                    content.append("Islam: " + hashMap.get("islam_pr100") + "%" + "\n" );
+                    break;
+                case "others":
+                    content.append("Other religions: " + hashMap.get("ohetr_religion_pr100") + "%" + "\n" );
+                    break;
+            }
+        }
+
+        content.deleteCharAt(content.length() - 1);
+
+        return content.toString();
+    }
 }
+//result[0] = "sa2_main16";
+//        result[1] = "sa2_name16";
+//        result[2] = "h_sale_price";
+//        result[3] ="h_rent_price";
+//        result[4] = "u_sale_price";
+//        result[5] = "u_rent_price";
+//        result[6] = "vehicle_num";
+//        result[7] ="median_income";
+//        result[8] ="children_education";
+//        result[9] ="immi_not_citizen";
+//        result[10] ="christian_pr100";
+//        result[11] ="buddhism_pr100";
+//        result[12] ="hinduism_pr100";
+//        result[13] = "judaism_pr100 ";
+//        result[14] ="islam_pr100";
+//        result[15] ="ohetr_religion_pr100";

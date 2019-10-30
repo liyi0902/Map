@@ -1,5 +1,7 @@
 package com.example;
+
 import android.database.Cursor;
+import android.util.Log;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -56,6 +58,10 @@ public class DBActivity {
                 result[15] = "5";
             }
         }
+        for(int x=0;x<result.length;x++){
+            if(result[x] != null){
+                Log.i("int",result[x].toString());}
+        }
         return toInt(result);
     }
     private boolean notNull(HashMap input, String m){
@@ -111,6 +117,9 @@ public class DBActivity {
                 j++;
             }
         }
+        for(int x=0;x<result.length;x++){
+            Log.i("column",result[x].toString());
+        }
         return result;
     }
     /*用于获取权重在SQL中order by 的表达式。
@@ -148,33 +157,38 @@ public class DBActivity {
             cursor.close();
         }
         else{cursor.close();result = null;}
+        for(int x=0;x<result.length;x++){
+            Log.i("main",result[x].toString());
+        }
         return result;
     }
 
 
-    public ArrayList returnResult(String[] main, String[] column){
-        ArrayList result = new ArrayList();
+    public HashMap returnResult(String[] main, String[] column){
+        HashMap<String, String> result = new HashMap();
+        String[] keys = getSa2();
         String where = new String();
-        where = main[0];
         int length = main.length;
         if(length >1) {
             for (int q = 1; q < length; q++) {
                 where = where + "OR sa2_main16 = " + main[q];
             }
-        }
-        Cursor cursor = access.query("SA2_data_1", column, where,null);
+        }else{where = "sa2_main16 = " + main[0];}
+        Cursor cursor = access.query("SA2_data_1", null, where,null);
         String[] output = new String[cursor.getColumnCount()];
         if(cursor.getCount() != 0) {
             cursor.moveToFirst();
             do {
                 for (int j = 0; j <= (cursor.getColumnCount() - 1); j++) {
-                    output[j] = cursor.getString(j);
+                    result.put(keys[j],cursor.getString(j));
                 }
-                result.add(output);
+
             } while (cursor.moveToNext());
             cursor.close();
         }
         else {cursor.close();result = null;}
+
+
         return result;
 
     }
@@ -186,7 +200,7 @@ public class DBActivity {
      * 注意：返回的结果只包含了输入value不为0的字段，为0的字段会被跳过。这也便于展示数据。
      * 目前最多返回一个区域的结果。
      * 若检索结果为空，将返回null。*/
-    public ArrayList filterRequest(HashMap map){
+    public HashMap filterRequest(HashMap map){
         int[] input = parseInput(map);
         String[] columns = genColumn(input);
         String weight = genWeight(input);

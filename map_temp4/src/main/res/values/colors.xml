@@ -5,4 +5,5 @@
     <color name="colorAccent">#D81B60</color>
     <color name="notSelected">#E4E2E2</color>
     <color name="selected">#C3EC95</color>
+    <color name="area">#F8EECF</color>
 </resources>
