@@ -132,7 +132,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 //        Intent intent = new Intent(this, DataPrepareService.class);
 //        startService(intent);
 //
-//        btnFilter = findViewById(R.id.btn_filter);
+
         navigationView = findViewById(R.id.navigation);
         prepareNavigationData();
         navigationView.setNavigationItemSelectedListener(this);
