@@ -41,6 +41,10 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polygon;
+import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -98,6 +102,9 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private final String LOCAL_FILE = "mCollections.txt";
     private NavigationView navigationView;
 
+    public static Context mContext;
+
+    private PolygonOptions mPolygonOptions;
 
 
 //    private List<Address> addresses = new ArrayList<>();   //preserve addresses for search returns
@@ -106,6 +113,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_map);
+
+        mContext = this.getApplicationContext();
 
         materialSearchBar = findViewById(R.id.searchBar);
         btnFilter = findViewById(R.id.btn_filter);
@@ -366,6 +375,10 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         mMap.setMyLocationEnabled(true);  //enable the location button
         mMap.getUiSettings().setMyLocationButtonEnabled(true);
 
+        if(mPolygonOptions != null){
+            mMap.addPolygon(mPolygonOptions);
+        }
+
         //change the position of location button
         if(mapView != null && mapView.findViewById(Integer.parseInt("1")) != null){
             View locationButton = ((View)mapView.findViewById(Integer.parseInt("1")).getParent())
@@ -484,6 +497,46 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 saveNavigationData();
                 Toast.makeText(MapActivity.this, "saved setting successful", Toast.LENGTH_SHORT).show();
                 break;
+            case "confirm":
+                DBActivity dbActivity = new DBActivity();
+                ArrayList<String[]> returnedResult = dbActivity.filterRequest(result);
+                if(returnedResult.size() == 0){
+                    Toast.makeText(this, "cannot find a proper area", Toast.LENGTH_LONG).show();
+                }else{
+                    mMap.clear();
+
+                    String sa2_code = returnedResult.get(0)[0];
+                    ArrayList<float[]> polygonShape = dbActivity.polygonRequest(sa2_code);
+                    float[] temp;
+                    ArrayList<LatLng> polygonCoordinates = new ArrayList<>();
+                    for(int i=0; i<polygonShape.size(); i++){
+                        temp = polygonShape.get(i);
+                        polygonCoordinates.add(new LatLng(temp[1], temp[0]));
+
+                    }
+
+
+                    PolygonOptions polygonOptions = new PolygonOptions();
+                    polygonOptions.addAll(polygonCoordinates);
+                    //polygonOptions.fillColor(R.color.selected);
+
+
+                    Polygon polygon1 = mMap.addPolygon(polygonOptions);
+                    mPolygonOptions = polygonOptions;
+                    //polygon1.setFillColor(R.color.selected);
+
+                    LatLng latLng = getPolygonCenterPoint(polygonCoordinates);
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                            new LatLng(latLng.latitude, latLng.longitude),
+                            14));
+                    String content = getFilterContent(result);
+                    mMap.addMarker(new MarkerOptions().position(latLng)
+                            .title("distinct name")
+                            .snippet(content));
+                    latOfScreenCenter = latLng.latitude;
+                    lngOfScreenCenter = latLng.longitude;
+                }
+                break;
         }
         //Toast.makeText(this, "get price " + result.get("price"), Toast.LENGTH_SHORT).show();
     }
@@ -566,36 +619,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         int index = menuItem.getItemId();
         Toast.makeText(this, "the id is" + index, Toast.LENGTH_SHORT).show();
         HashMap<String, String> temp = savedOptions.get(index);
-        StringBuilder message = new StringBuilder();
-        if(!temp.get("housePrice").equals("0")){
-            message.append("housePrice: " + temp.get("housePrice") + "\n");
-        }
-        if(!temp.get("unitPrice").equals("0")){
-            message.append("unitPrice: " + temp.get("unitPrice") + "\n" );
-        }
-        if(!temp.get("traffic").equals("0")){
-            message.append("traffic: " + temp.get("traffic") + "\n" );
-        }
-        if(!temp.get("houseRent").equals("0")){
-            message.append("houseRent: " + temp.get("houseRent") + "\n" );
-        }
-        if(!temp.get("unitRent").equals("0")){
-            message.append("unitRent: " + temp.get("unitRent") + "\n" );
-        }
-        if(!temp.get("income").equals("0")){
-            message.append("income: " + temp.get("income") + "\n" );
-        }
-        if(!temp.get("education").equals("0")){
-            message.append("education: " + temp.get("education") + "\n" );
-        }
-        if(!temp.get("immigrant").equals("0")){
-            message.append("immigrant: " + temp.get("immigrant") + "\n" );
-        }
-        if(temp.get("religion")!=null){
-            message.append("religion: " + temp.get("religion") + "\n" );
-        }
-
-        message.deleteCharAt(message.length() - 1);
+        String message = getFilterContent(temp);
         builder.setMessage(message);
         builder.setTitle(menuItem.getTitle());
 
@@ -640,5 +664,53 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         bundle.putSerializable("selectedItem", temp);
         bottomSheetDialog.setArguments(bundle);
         bottomSheetDialog.show(getSupportFragmentManager(), "BottomSheet");
+    }
+
+    private LatLng getPolygonCenterPoint(ArrayList<LatLng> polygonPointsList){
+        LatLng centerLatLng = null;
+        LatLngBounds.Builder builder = new LatLngBounds.Builder();
+        for(int i = 0 ; i < polygonPointsList.size() ; i++)
+        {
+            builder.include(polygonPointsList.get(i));
+        }
+        LatLngBounds bounds = builder.build();
+        centerLatLng =  bounds.getCenter();
+
+        return centerLatLng;
+    }
+
+    private String getFilterContent(HashMap<String, String> hashMap){
+        StringBuilder content = new StringBuilder();
+        if(!hashMap.get("housePrice").equals("0")){
+            content.append("housePrice: " + hashMap.get("housePrice") + "\n");
+        }
+        if(!hashMap.get("unitPrice").equals("0")){
+            content.append("unitPrice: " + hashMap.get("unitPrice") + "\n" );
+        }
+        if(!hashMap.get("traffic").equals("0")){
+            content.append("traffic: " + hashMap.get("traffic") + "\n" );
+        }
+        if(!hashMap.get("houseRent").equals("0")){
+            content.append("houseRent: " + hashMap.get("houseRent") + "\n" );
+        }
+        if(!hashMap.get("unitRent").equals("0")){
+            content.append("unitRent: " + hashMap.get("unitRent") + "\n" );
+        }
+        if(!hashMap.get("income").equals("0")){
+            content.append("income: " + hashMap.get("income") + "\n" );
+        }
+        if(!hashMap.get("education").equals("0")){
+            content.append("education: " + hashMap.get("education") + "\n" );
+        }
+        if(!hashMap.get("immigrant").equals("0")){
+            content.append("immigrant: " + hashMap.get("immigrant") + "\n" );
+        }
+        if(hashMap.get("religion")!=null){
+            content.append("religion: " + hashMap.get("religion") + "\n" );
+        }
+
+        content.deleteCharAt(content.length() - 1);
+
+        return content.toString();
     }
 }

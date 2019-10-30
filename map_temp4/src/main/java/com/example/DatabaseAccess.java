@@ -59,18 +59,22 @@ public class DatabaseAccess {
      * @return A {@link Cursor} object, which is positioned before the first entry. Note that
      * {@link Cursor}s are not synchronized, see the documentation for more details.
      * @see Cursor
+
     public Cursor query(String table, String[] columns, String selection,
     String[] selectionArgs, String groupBy, String having,
     String orderBy, String limit) {
+
     return query(false, table, columns, selection, selectionArgs, groupBy,
     having, orderBy, limit);
     }
      */
-    public Cursor query(String[] columns, String where){
-        return db.query("SA2", columns, where, null, null, null, null, "5");
+    public Cursor query(String tableName, String[] columns, String where,String weight){
+        return db.query(tableName, columns, where, null, null, null, weight, "1");
     }
-
-
-
-
+    public Cursor queryCoordinate(String tableName, String where){
+        String[] columns= new String[2];
+        columns[0] = "POINT_X";
+        columns[1] = "POINT_Y";
+        return db.query(tableName, columns, where, null, null, null, "OBJECTID", null);
+    }
 }

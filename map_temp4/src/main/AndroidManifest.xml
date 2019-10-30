@@ -13,6 +13,12 @@
         android:theme="@style/AppTheme">
         <meta-data android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyC23Nfih07UvEoosLJ7f6k148YtxSReE-4"/>
+        <meta-data
+            android:name="com.google.android.gms.version"
+            android:value="@integer/google_play_services_version" />
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="AIzaSyC23Nfih07UvEoosLJ7f6k148YtxSReE-4" />
         <activity
             android:name=".MapActivity"
             android:label="@string/title_activity_map"

@@ -1,24 +1,19 @@
 package com.example;
 
-import android.content.Context;
-import android.database.sqlite.SQLiteDatabase;
-import android.database.sqlite.SQLiteOpenHelper;
 
-public class SqliteHelper extends SQLiteOpenHelper  {
-    private static final String DATABASE_NAME = "Project_db.db";
-    private static final int DATABASE_VERSION = 1;
+
+import android.content.Context;
+
+import com.readystatesoftware.sqliteasset.SQLiteAssetHelper;
+
+public class SqliteHelper extends SQLiteAssetHelper  {
+    private static final String DATABASE_NAME = "Project_DB.db";
+    private static final int DATABASE_VERSION = 3;
+    //private static String path = "data/data/com.example/databases/" ;
 
     public SqliteHelper(Context context) {
-        super(context, DATABASE_NAME,  null, DATABASE_VERSION);
+        super(context, DATABASE_NAME,null, DATABASE_VERSION);
     }
 
-    @Override
-    public void onCreate(SQLiteDatabase db) {
 
-    }
-
-    @Override
-    public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-
-    }
 }
