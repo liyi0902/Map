@@ -17,6 +17,7 @@ import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.PopupMenu;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
 
@@ -104,7 +105,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
     public static Context mContext;
 
-    private PolygonOptions mPolygonOptions;
+   // private PolygonOptions mPolygonOptions;
 
 
 //    private List<Address> addresses = new ArrayList<>();   //preserve addresses for search returns
@@ -232,6 +233,22 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             public void onButtonClicked(int buttonCode) {
                 if(buttonCode == MaterialSearchBar.BUTTON_NAVIGATION){
                     //opening or closing a navigation drawer
+                    ImageView navIcon = findViewById(R.id.mt_nav);
+                    PopupMenu popupMenu = new PopupMenu(MapActivity.this, navIcon);
+                    popupMenu.getMenuInflater().inflate(R.menu.popup_menu, popupMenu.getMenu());
+                    popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                        @Override
+                        public boolean onMenuItemClick(MenuItem item) {
+                            mMap.clear();
+                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                                    new LatLng(mLastKnowLocation.getLatitude(), mLastKnowLocation.getLongitude()),
+                                    DEFAULT_ZOOM));
+                            latOfScreenCenter = mLastKnowLocation.getLatitude();
+                            lngOfScreenCenter = mLastKnowLocation.getLongitude();
+                            return true;
+                        }
+                    });
+                    popupMenu.show();
                 }else if(buttonCode == MaterialSearchBar.BUTTON_BACK){
                     materialSearchBar.disableSearch();
 //                    materialSearchBar.clearSuggestions();
@@ -375,9 +392,9 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         mMap.setMyLocationEnabled(true);  //enable the location button
         mMap.getUiSettings().setMyLocationButtonEnabled(true);
 
-        if(mPolygonOptions != null){
-            mMap.addPolygon(mPolygonOptions);
-        }
+//        if(mPolygonOptions != null){
+//            mMap.addPolygon(mPolygonOptions);
+//        }
 
         //change the position of location button
         if(mapView != null && mapView.findViewById(Integer.parseInt("1")) != null){
@@ -499,43 +516,53 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 break;
             case "confirm":
                 DBActivity dbActivity = new DBActivity();
-                HashMap<String, String> returnedResult = dbActivity.filterRequest(result);
+                ArrayList<HashMap<String, String>> returnedResult = dbActivity.filterRequest(result);
                 if(returnedResult.size() == 0){
                     Toast.makeText(this, "cannot find a proper area", Toast.LENGTH_LONG).show();
                 }else{
                     mMap.clear();
                     mMap.setInfoWindowAdapter(new CustomInfoWindowAdapter(MapActivity.this));
 
-                    String sa2_code = returnedResult.get("sa2_main16");
-                    ArrayList<float[]> polygonShape = dbActivity.polygonRequest(sa2_code);
-                    float[] temp;
-                    ArrayList<LatLng> polygonCoordinates = new ArrayList<>();
-                    for(int i=0; i<polygonShape.size(); i++){
-                        temp = polygonShape.get(i);
-                        polygonCoordinates.add(new LatLng(temp[1], temp[0]));
-
+                    HashMap<String, String> eachResult;
+                    HashMap<String, String> firstResult = null;
+                    String sa2_code;
+                    ArrayList<float[]> polygonShape;
+                    ArrayList<LatLng> firstPolygon = null;
+                    for(int i=0; i<returnedResult.size(); i++){
+                        eachResult = returnedResult.get(i);
+                        sa2_code = eachResult.get("sa2_main16");
+                        polygonShape = dbActivity.polygonRequest(sa2_code);
+                        float[] temp;
+                        ArrayList<LatLng> polygonCoordinates = new ArrayList<>();
+                        for(int j=0; j<polygonShape.size(); j++){
+                            temp = polygonShape.get(j);
+                            polygonCoordinates.add(new LatLng(temp[1], temp[0]));
+                        }
+                        PolygonOptions polygonOptions = new PolygonOptions();
+                        polygonOptions.addAll(polygonCoordinates);
+                        if(i == 0){
+                            firstPolygon = polygonCoordinates;
+                            firstResult = eachResult;
+                        }
+                        //polygonOptions.fillColor(R.color.selected);
+                        Polygon polygon1 = mMap.addPolygon(polygonOptions);
+                        //mPolygonOptions = polygonOptions;
+//                    polygon1.setFillColor(Color.);
                     }
 
+                    if(firstPolygon != null && firstResult != null){
+                        LatLng latLng = getPolygonCenterPoint(firstPolygon);
+                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                                new LatLng(latLng.latitude, latLng.longitude),
+                                13));
+                        String content = getSelectedAreaInfo(firstResult, result);
+                        mMap.addMarker(new MarkerOptions().position(latLng)
+                                .title(firstResult.get("sa2_name16"))
+                                .snippet(content));
+                        latOfScreenCenter = latLng.latitude;
+                        lngOfScreenCenter = latLng.longitude;
+                    }
 
-                    PolygonOptions polygonOptions = new PolygonOptions();
-                    polygonOptions.addAll(polygonCoordinates);
-                    //polygonOptions.fillColor(R.color.selected);
-
-
-                    Polygon polygon1 = mMap.addPolygon(polygonOptions);
-                    mPolygonOptions = polygonOptions;
-//                    polygon1.setFillColor(Color.);
-
-                    LatLng latLng = getPolygonCenterPoint(polygonCoordinates);
-                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                            new LatLng(latLng.latitude, latLng.longitude),
-                            13));
-                    String content = getSelectedAreaInfo(returnedResult, result);
-                    mMap.addMarker(new MarkerOptions().position(latLng)
-                            .title(returnedResult.get("sa2_name16"))
-                            .snippet(content));
-                    latOfScreenCenter = latLng.latitude;
-                    lngOfScreenCenter = latLng.longitude;
                 }
                 break;
         }
@@ -717,28 +744,28 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
     private String getSelectedAreaInfo(HashMap<String, String> hashMap, HashMap<String, String> filter){
         StringBuilder content = new StringBuilder();
-        if(!hashMap.get("h_sale_price").equals("0")){
+        if(hashMap.get("h_sale_price") != null && !hashMap.get("h_sale_price").equals("0")){
             content.append("Average house price: " + hashMap.get("h_sale_price") + "$" + "\n");
         }
-        if(!hashMap.get("u_sale_price").equals("0")){
+        if(hashMap.get("u_sale_price") != null && !hashMap.get("u_sale_price").equals("0")){
             content.append("Average unit price: " + hashMap.get("u_sale_price") + "$" + "\n" );
         }
-        if(!hashMap.get("vehicle_num").equals("0")){
+        if(hashMap.get("vehicle_num") != null && !hashMap.get("vehicle_num").equals("0")){
             content.append("Vehicle quantity: " + hashMap.get("vehicle_num") + "\n" );
         }
-        if(!hashMap.get("h_rent_price").equals("0")){
+        if(hashMap.get("h_rent_price") != null && !hashMap.get("h_rent_price").equals("0")){
             content.append("Average house rent: " + hashMap.get("h_rent_price") + "$/week" + "\n" );
         }
-        if(!hashMap.get("u_rent_price").equals("0")){
+        if(hashMap.get("u_rent_price") != null && !hashMap.get("u_rent_price").equals("0")){
             content.append("Average unit rent: " + hashMap.get("u_rent_price") + "$/week" + "\n" );
         }
-        if(!hashMap.get("median_income").equals("0")){
+        if(hashMap.get("median_income") != null && !hashMap.get("median_income").equals("0")){
             content.append("Median income: " + hashMap.get("median_income") + "$" + "\n" );
         }
-        if(!hashMap.get("children_education").equals("0")){
+        if(hashMap.get("children_education") != null && !hashMap.get("children_education").equals("0")){
             content.append("Education quality: " + hashMap.get("children_education") + "\n" );
         }
-        if(!hashMap.get("immi_not_citizen").equals("0")){
+        if(hashMap.get("immi_not_citizen") != null && !hashMap.get("immi_not_citizen").equals("0")){
             content.append("Immigrant: " + hashMap.get("immi_not_citizen") + "%" + "\n" );
         }
 

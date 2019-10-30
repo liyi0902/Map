@@ -12,7 +12,7 @@ import java.util.HashMap;
  * 关于DatabaseAccess实例的访问，这边可能需要你吧getApplicationContext()弄成static或者写一个getInstance()***/
 public class DBActivity {
     public DatabaseAccess access;
-    private static int NUMBER_OF_SEARCH = 1;
+    private static int NUMBER_OF_SEARCH = 3;
 //    protected void onCreate(Bundle savedInstanceState) {
 //        getAccess();
 //    }
@@ -164,25 +164,27 @@ public class DBActivity {
     }
 
 
-    public HashMap returnResult(String[] main, String[] column){
-        HashMap<String, String> result = new HashMap();
+    public ArrayList<HashMap<String,String>> returnResult(String[] main, String[] column){
+        ArrayList<HashMap<String, String>> result = new ArrayList();
         String[] keys = getSa2();
         String where = new String();
+        where = "sa2_main16 = " + main[0];
         int length = main.length;
         if(length >1) {
             for (int q = 1; q < length; q++) {
-                where = where + "OR sa2_main16 = " + main[q];
+                where = where + " OR sa2_main16 = " + main[q];
             }
-        }else{where = "sa2_main16 = " + main[0];}
+        }
         Cursor cursor = access.query("SA2_data_1", null, where,null);
         String[] output = new String[cursor.getColumnCount()];
         if(cursor.getCount() != 0) {
             cursor.moveToFirst();
             do {
+                HashMap<String, String> maps = new HashMap();
                 for (int j = 0; j <= (cursor.getColumnCount() - 1); j++) {
-                    result.put(keys[j],cursor.getString(j));
+                    maps.put(keys[j],cursor.getString(j));
                 }
-
+                result.add(maps);
             } while (cursor.moveToNext());
             cursor.close();
         }
@@ -200,7 +202,7 @@ public class DBActivity {
      * 注意：返回的结果只包含了输入value不为0的字段，为0的字段会被跳过。这也便于展示数据。
      * 目前最多返回一个区域的结果。
      * 若检索结果为空，将返回null。*/
-    public HashMap filterRequest(HashMap map){
+    public ArrayList<HashMap<String, String>> filterRequest(HashMap map){
         int[] input = parseInput(map);
         String[] columns = genColumn(input);
         String weight = genWeight(input);
