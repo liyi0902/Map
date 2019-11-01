@@ -201,27 +201,31 @@ public class BottomSheetDialog extends BottomSheetDialogFragment {
         btn_confirm.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                HashMap<String, String> result = new HashMap<>();
-                String housePrice = String.valueOf(sb_house_price.getProgress());
-                String unitPrice = String.valueOf(sb_unit_price.getProgress());
-                String traffic = String.valueOf(sb_traffic.getProgress());
-                String houseRent = String.valueOf(sb_house_rent.getProgress());
-                String unitRent = String.valueOf(sb_unit_rent.getProgress());
-                String income = String.valueOf(sb_income.getProgress());
-                String education = String.valueOf(sb_education.getProgress());
-                String immigrant = String.valueOf(sb_immigrants.getProgress());
-                String religion = religionSelected();
-                result.put("housePrice", housePrice);
-                result.put("unitPrice", unitPrice);
-                result.put("traffic", traffic);
-                result.put("houseRent", houseRent);
-                result.put("unitRent", unitRent);
-                result.put("income", income);
-                result.put("education", education);
-                result.put("immigrant", immigrant);
-                result.put("religion", religion);
-                mListener.onButtomClicked(result, "confirm");
-                dismiss();
+                if(isSetFilter()){
+                    HashMap<String, String> result = new HashMap<>();
+                    String housePrice = String.valueOf(sb_house_price.getProgress());
+                    String unitPrice = String.valueOf(sb_unit_price.getProgress());
+                    String traffic = String.valueOf(sb_traffic.getProgress());
+                    String houseRent = String.valueOf(sb_house_rent.getProgress());
+                    String unitRent = String.valueOf(sb_unit_rent.getProgress());
+                    String income = String.valueOf(sb_income.getProgress());
+                    String education = String.valueOf(sb_education.getProgress());
+                    String immigrant = String.valueOf(sb_immigrants.getProgress());
+                    String religion = religionSelected();
+                    result.put("housePrice", housePrice);
+                    result.put("unitPrice", unitPrice);
+                    result.put("traffic", traffic);
+                    result.put("houseRent", houseRent);
+                    result.put("unitRent", unitRent);
+                    result.put("income", income);
+                    result.put("education", education);
+                    result.put("immigrant", immigrant);
+                    result.put("religion", religion);
+                    mListener.onButtomClicked(result, "confirm");
+                    dismiss();
+                }else{
+                    Toast.makeText(MapActivity.mContext, "Please set the filter", Toast.LENGTH_LONG).show();
+                }
             }
         });
 
@@ -235,30 +239,35 @@ public class BottomSheetDialog extends BottomSheetDialogFragment {
         text_save.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(isExistInMenu()){
-                    Toast.makeText(getActivity(), "The same setting is already exist", Toast.LENGTH_SHORT).show();
+                if(isSetFilter()){
+                    if(isExistInMenu()){
+                        Toast.makeText(getActivity(), "The same setting is already exist", Toast.LENGTH_SHORT).show();
+                    }else{
+                        HashMap<String, String> saved = new HashMap<>();
+                        String housePrice = String.valueOf(sb_house_price.getProgress());
+                        String unitPrice = String.valueOf(sb_unit_price.getProgress());
+                        String traffic = String.valueOf(sb_traffic.getProgress());
+                        String houseRent = String.valueOf(sb_house_rent.getProgress());
+                        String unitRent = String.valueOf(sb_unit_rent.getProgress());
+                        String income = String.valueOf(sb_income.getProgress());
+                        String education = String.valueOf(sb_education.getProgress());
+                        String immigrant = String.valueOf(sb_immigrants.getProgress());
+                        String religion = religionSelected();
+                        saved.put("housePrice", housePrice);
+                        saved.put("unitPrice", unitPrice);
+                        saved.put("traffic", traffic);
+                        saved.put("houseRent", houseRent);
+                        saved.put("unitRent", unitRent);
+                        saved.put("income", income);
+                        saved.put("education", education);
+                        saved.put("immigrant", immigrant);
+                        saved.put("religion", religion);
+                        mListener.onButtomClicked(saved, "save");
+                    }
                 }else{
-                    HashMap<String, String> saved = new HashMap<>();
-                    String housePrice = String.valueOf(sb_house_price.getProgress());
-                    String unitPrice = String.valueOf(sb_unit_price.getProgress());
-                    String traffic = String.valueOf(sb_traffic.getProgress());
-                    String houseRent = String.valueOf(sb_house_rent.getProgress());
-                    String unitRent = String.valueOf(sb_unit_rent.getProgress());
-                    String income = String.valueOf(sb_income.getProgress());
-                    String education = String.valueOf(sb_education.getProgress());
-                    String immigrant = String.valueOf(sb_immigrants.getProgress());
-                    String religion = religionSelected();
-                    saved.put("housePrice", housePrice);
-                    saved.put("unitPrice", unitPrice);
-                    saved.put("traffic", traffic);
-                    saved.put("houseRent", houseRent);
-                    saved.put("unitRent", unitRent);
-                    saved.put("income", income);
-                    saved.put("education", education);
-                    saved.put("immigrant", immigrant);
-                    saved.put("religion", religion);
-                    mListener.onButtomClicked(saved, "save");
+                    Toast.makeText(getContext(), "Please set the filter first", Toast.LENGTH_SHORT).show();
                 }
+
             }
         });
 
@@ -416,6 +425,38 @@ public class BottomSheetDialog extends BottomSheetDialogFragment {
                     break;
             }
         }
+    }
+
+    private boolean isSetFilter(){
+        if(sb_house_price.getProgress() != 0){
+            return true;
+        }
+        if(sb_unit_price.getProgress() != 0){
+            return true;
+        }
+        if(sb_traffic.getProgress() != 0){
+            return true;
+        }
+        if(sb_house_rent.getProgress() != 0){
+            return true;
+        }
+        if(sb_unit_rent.getProgress() != 0){
+            return true;
+        }
+        if(sb_income.getProgress() != 0){
+            return true;
+        }
+        if(sb_education.getProgress() != 0){
+            return true;
+        }
+        if(sb_immigrants.getProgress() != 0){
+            return true;
+        }
+        if(religionSelected() != null){
+            return true;
+        }
+        return false;
+
     }
 
 }

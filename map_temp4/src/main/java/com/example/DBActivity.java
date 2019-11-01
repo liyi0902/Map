@@ -12,7 +12,7 @@ import java.util.HashMap;
  * 关于DatabaseAccess实例的访问，这边可能需要你吧getApplicationContext()弄成static或者写一个getInstance()***/
 public class DBActivity {
     public DatabaseAccess access;
-    private static int NUMBER_OF_SEARCH = 3;
+    private static String NUMBER_OF_SEARCH = "3";
 //    protected void onCreate(Bundle savedInstanceState) {
 //        getAccess();
 //    }
@@ -23,6 +23,9 @@ public class DBActivity {
     public void getAccess(){
         access = DatabaseAccess.getInstance(MapActivity.mContext);
         access.open();
+    }
+    public static void updateNum(String num){
+        NUMBER_OF_SEARCH = num;
     }
     /*用于将HashMap转成int[].
      * 值得一提的是你那边judaism拼成了judasim，我按照你的写了，最后数据展示出来不要写错就好*/
@@ -146,7 +149,8 @@ public class DBActivity {
 
 
     public String[] getMain(Cursor cursor){
-        String[] result = new String[NUMBER_OF_SEARCH];
+        int length = Integer.parseInt(NUMBER_OF_SEARCH);
+        String[] result = new String[length];
         if(cursor.getCount() != 0) {
             cursor.moveToFirst();
             int i = 0;
@@ -175,7 +179,7 @@ public class DBActivity {
                 where = where + " OR sa2_main16 = " + main[q];
             }
         }
-        Cursor cursor = access.query("SA2_data_1", null, where,null);
+        Cursor cursor = access.query("SA2_data_1", null, where,null,NUMBER_OF_SEARCH);
         String[] output = new String[cursor.getColumnCount()];
         if(cursor.getCount() != 0) {
             cursor.moveToFirst();
@@ -206,7 +210,7 @@ public class DBActivity {
         int[] input = parseInput(map);
         String[] columns = genColumn(input);
         String weight = genWeight(input);
-        Cursor cursor = access.query("SA2_data_normal", columns, null, weight);
+        Cursor cursor = access.query("SA2_data_normal", columns, null, weight,NUMBER_OF_SEARCH);
         if(cursor.getCount() != 0){
             String[] main = getMain(cursor);
             cursor.close();

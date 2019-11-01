@@ -16,7 +16,9 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.PopupMenu;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
@@ -105,6 +107,16 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
     public static Context mContext;
 
+    private String RETURN_NUM = "1";
+    private LinearLayout hideLinearLayout;
+    private Button btn_hideConfirm;
+    private EditText editText;
+
+    private LinearLayout move_camera;
+
+    private int centerIndex;
+    private ArrayList<LatLng> allCenters;
+
    // private PolygonOptions mPolygonOptions;
 
 
@@ -133,7 +145,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 //        Intent intent = new Intent(this, DataPrepareService.class);
 //        startService(intent);
 //
-
+        DBActivity.updateNum(RETURN_NUM);
         navigationView = findViewById(R.id.navigation);
         prepareNavigationData();
         navigationView.setNavigationItemSelectedListener(this);
@@ -239,12 +251,17 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                     popupMenu.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
                         @Override
                         public boolean onMenuItemClick(MenuItem item) {
-                            mMap.clear();
-                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                                    new LatLng(mLastKnowLocation.getLatitude(), mLastKnowLocation.getLongitude()),
-                                    DEFAULT_ZOOM));
-                            latOfScreenCenter = mLastKnowLocation.getLatitude();
-                            lngOfScreenCenter = mLastKnowLocation.getLongitude();
+                            if(item.getItemId() == R.id.item_set_number){
+                                hideLinearLayout.setVisibility(View.VISIBLE);
+                            }else if(item.getItemId() == R.id.item_clear){
+                                mMap.clear();
+                                move_camera.setVisibility(View.INVISIBLE);
+                                mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                                        new LatLng(mLastKnowLocation.getLatitude(), mLastKnowLocation.getLongitude()),
+                                        13));
+                                latOfScreenCenter = mLastKnowLocation.getLatitude();
+                                lngOfScreenCenter = mLastKnowLocation.getLongitude();
+                            }
                             return true;
                         }
                     });
@@ -369,6 +386,35 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             }
         });
 
+        hideLinearLayout = findViewById(R.id.text_set_return_number);
+        editText = findViewById(R.id.edit_return_number);
+        btn_hideConfirm = findViewById(R.id.btn_return_number_confirm);
+        btn_hideConfirm.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String input = editText.getText().toString();
+                if(input.length() != 0){
+                    if(isNumeric(input)){
+                        RETURN_NUM = input;
+                        editText.setHint(input);
+                        DBActivity.updateNum(RETURN_NUM);
+                        InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                        imm.hideSoftInputFromWindow(getWindow().getDecorView().getWindowToken(), 0);
+                        hideLinearLayout.setVisibility(View.INVISIBLE);
+                        Toast.makeText(MapActivity.this, "Set return number successful", Toast.LENGTH_SHORT).show();
+                    }else{
+                        Toast.makeText(MapActivity.this, "Please enter a validate number", Toast.LENGTH_SHORT).show();
+                    }
+                }else{
+                    InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
+                    imm.hideSoftInputFromWindow(getWindow().getDecorView().getWindowToken(), 0);
+                    hideLinearLayout.setVisibility(View.INVISIBLE);
+                }
+            }
+        });
+
+
+        move_camera = findViewById(R.id.move_camera);
 
 
     }
@@ -510,7 +556,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         switch(command){
             case "save":
                 savedOptions.add(result);
-                navigationView.getMenu().add("my collection " + savedOptions.size());
+                navigationView.getMenu().add(0, savedOptions.size()-1, 0, "my collection " + savedOptions.size());
                 saveNavigationData();
                 Toast.makeText(MapActivity.this, "saved setting successful", Toast.LENGTH_SHORT).show();
                 break;
@@ -524,10 +570,12 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                     mMap.setInfoWindowAdapter(new CustomInfoWindowAdapter(MapActivity.this));
 
                     HashMap<String, String> eachResult;
-                    HashMap<String, String> firstResult = null;
+                    //HashMap<String, String> firstResult = null;
                     String sa2_code;
                     ArrayList<float[]> polygonShape;
-                    ArrayList<LatLng> firstPolygon = null;
+                    //ArrayList<LatLng> firstPolygon = null;
+                    allCenters = new ArrayList<>();
+                    LatLng latLng;
                     for(int i=0; i<returnedResult.size(); i++){
                         eachResult = returnedResult.get(i);
                         sa2_code = eachResult.get("sa2_main16");
@@ -540,29 +588,47 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                         }
                         PolygonOptions polygonOptions = new PolygonOptions();
                         polygonOptions.addAll(polygonCoordinates);
-                        if(i == 0){
-                            firstPolygon = polygonCoordinates;
-                            firstResult = eachResult;
-                        }
+//                        if(i == 0){
+//                            firstPolygon = polygonCoordinates;
+//                            firstResult = eachResult;
+//                        }
+
                         //polygonOptions.fillColor(R.color.selected);
                         Polygon polygon1 = mMap.addPolygon(polygonOptions);
-                        //mPolygonOptions = polygonOptions;
-//                    polygon1.setFillColor(Color.);
-                    }
-
-                    if(firstPolygon != null && firstResult != null){
-                        LatLng latLng = getPolygonCenterPoint(firstPolygon);
-                        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
-                                new LatLng(latLng.latitude, latLng.longitude),
-                                13));
-                        String content = getSelectedAreaInfo(firstResult, result);
+                        String content = getSelectedAreaInfo(eachResult, result);
+                        latLng = getPolygonCenterPoint(polygonCoordinates);
+                        allCenters.add(latLng);
                         mMap.addMarker(new MarkerOptions().position(latLng)
-                                .title(firstResult.get("sa2_name16"))
+                                .title(eachResult.get("sa2_name16"))
                                 .snippet(content));
                         latOfScreenCenter = latLng.latitude;
                         lngOfScreenCenter = latLng.longitude;
                     }
 
+                    mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                            new LatLng(allCenters.get(0).latitude, allCenters.get(0).longitude),
+                            13));
+                    latOfScreenCenter = allCenters.get(0).latitude;
+                    lngOfScreenCenter = allCenters.get(0).longitude;
+
+                    if(allCenters.size() > 1){
+                        move_camera.setVisibility(View.VISIBLE);
+                        Button btn_prev = findViewById(R.id.btn_prev);
+                        Button btn_next = findViewById(R.id.btn_next);
+                        centerIndex = 0;
+                        btn_prev.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                moveToNextArea();
+                            }
+                        });
+                        btn_next.setOnClickListener(new View.OnClickListener() {
+                            @Override
+                            public void onClick(View v) {
+                                moveToPrevArea();
+                            }
+                        });
+                    }
                 }
                 break;
         }
@@ -572,6 +638,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     public void onBackPressed(){
         if(mDrawerLayout.isDrawerOpen(Gravity.RIGHT)){
             mDrawerLayout.closeDrawer(Gravity.RIGHT);
+        }else if(hideLinearLayout.getVisibility() == View.VISIBLE){
+            hideLinearLayout.setVisibility(View.INVISIBLE);
         }else{
             super.onBackPressed();
         }
@@ -796,6 +864,41 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         content.deleteCharAt(content.length() - 1);
 
         return content.toString();
+    }
+
+    private static boolean isNumeric(String str){
+        for (int i=0; i<str.length(); i++){
+            if (!Character.isDigit(str.charAt(i))){
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private void moveToNextArea(){
+        if(centerIndex < allCenters.size()-1){
+            centerIndex ++;
+        }else{
+            centerIndex = 0;
+        }
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                new LatLng(allCenters.get(centerIndex).latitude, allCenters.get(centerIndex).longitude),
+                13));
+        latOfScreenCenter = allCenters.get(centerIndex).latitude;
+        lngOfScreenCenter = allCenters.get(centerIndex).longitude;
+    }
+
+    private void moveToPrevArea(){
+        if(centerIndex > 0){
+            centerIndex --;
+        }else{
+            centerIndex = allCenters.size()-1;
+        }
+        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
+                new LatLng(allCenters.get(centerIndex).latitude, allCenters.get(centerIndex).longitude),
+                13));
+        latOfScreenCenter = allCenters.get(centerIndex).latitude;
+        lngOfScreenCenter = allCenters.get(centerIndex).longitude;
     }
 }
 //result[0] = "sa2_main16";

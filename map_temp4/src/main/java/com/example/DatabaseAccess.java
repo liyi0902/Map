@@ -68,8 +68,8 @@ public class DatabaseAccess {
     having, orderBy, limit);
     }
      */
-    public Cursor query(String tableName, String[] columns, String where,String weight){
-        return db.query(tableName, columns, where, null, null, null, weight, "3");
+    public Cursor query(String tableName, String[] columns, String where,String weight,String limit){
+        return db.query(tableName, columns, where, null, null, null, weight, limit);
     }
     public Cursor queryCoordinate(String tableName, String where){
         String[] columns= new String[2];

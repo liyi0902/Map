@@ -31,6 +31,38 @@
         android:layout_marginRight="12dp"
         android:layout_marginBottom="120dp"/>
 
+    <LinearLayout
+        android:id="@+id/text_set_return_number"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:visibility="invisible"
+        android:layout_marginTop="200dp"
+        android:background="#ffffff"
+        android:layout_centerInParent="true"
+        android:gravity="center_horizontal"
+        android:padding="10dp">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Please enter the number of distinct you want"
+            android:textStyle="bold"/>
+        <EditText
+            android:id="@+id/edit_return_number"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:hint="1"/>
+        <Button
+            android:id="@+id/btn_return_number_confirm"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Confirm"/>
+
+    </LinearLayout>
+
+
+
+
 
     <com.mancj.materialsearchbar.MaterialSearchBar
         style="@style/MaterialSearchBarLight"
@@ -45,6 +77,32 @@
         android:elevation="5dp"
         android:outlineProvider="bounds"
         app:mt_placeholder="Search a place"/>
+
+    <LinearLayout
+        android:id="@+id/move_camera"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_centerHorizontal="true"
+        android:layout_above="@+id/btn_filter"
+        android:layout_marginBottom="40dp"
+        android:visibility="invisible">
+
+        <Button
+            android:id="@+id/btn_prev"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="prev" />
+
+        <Button
+            android:id="@+id/btn_next"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="next" />
+
+    </LinearLayout>
+
+
 
     <Button
         android:id="@+id/btn_filter"
