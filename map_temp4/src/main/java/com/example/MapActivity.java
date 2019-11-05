@@ -46,7 +46,6 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.maps.model.Polygon;
 import com.google.android.gms.maps.model.PolygonOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -95,7 +94,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private View mapView;
     private Button btnFilter;
 
-    private final float DEFAULT_ZOOM = 18;
+    private final float DEFAULT_ZOOM_FAR = 18;
+    private final float DEFAULT_ZOOM_NEAR = 13;
     private final int ProximityRadius = 5000;
 
     private ImageView ic_favorite;
@@ -112,15 +112,11 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     private Button btn_hideConfirm;
     private EditText editText;
 
-    private LinearLayout move_camera;
+    private LinearLayout move_camera_btns;
 
     private int centerIndex;
     private ArrayList<LatLng> allCenters;
 
-   // private PolygonOptions mPolygonOptions;
-
-
-//    private List<Address> addresses = new ArrayList<>();   //preserve addresses for search returns
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -138,21 +134,23 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         mapView = mapFragment.getView();
 
         mFusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(MapActivity.this);
-        Places.initialize(MapActivity.this, "AIzaSyC23Nfih07UvEoosLJ7f6k148YtxSReE-4");
+        Places.initialize(MapActivity.this, getResources().getString(R.string.google_map_apikey));
         placeClient = Places.createClient(this);
         final AutocompleteSessionToken token = AutocompleteSessionToken.newInstance();
 
-//        Intent intent = new Intent(this, DataPrepareService.class);
-//        startService(intent);
-//
         DBActivity.updateNum(RETURN_NUM);
         navigationView = findViewById(R.id.navigation);
         prepareNavigationData();
         navigationView.setNavigationItemSelectedListener(this);
 
+
+        //invoke bottomsheet dialog when click "SET FILTER" button
         btnFilter.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                if(hideLinearLayout.getVisibility() == View.VISIBLE){
+                    hideLinearLayout.setVisibility(View.INVISIBLE);
+                }
                 BottomSheetDialog bottomSheetDialog = new BottomSheetDialog();
                 Bundle bundle = new Bundle();
                 bundle.putSerializable("savedOptions", savedOptions);
@@ -161,6 +159,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             }
         });
 
+        //clear user inputs in search bar and close prediction list
         ImageView floatingCloseButton = findViewById(R.id.mt_clear);
         floatingCloseButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -202,7 +201,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 getNearbyPlaces.execute(transeferData);
 
                 Toast.makeText(MapActivity.this, "Searching for nearby " + searchString, Toast.LENGTH_SHORT).show();
-                mMap.moveCamera(CameraUpdateFactory.zoomTo(12));
+                mMap.moveCamera(CameraUpdateFactory.zoomTo(DEFAULT_ZOOM_NEAR));
                 new Handler().postDelayed(new Runnable() {
                     @Override
                     public void run() {
@@ -214,31 +213,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 InputMethodManager imm = (InputMethodManager) getSystemService(Context.INPUT_METHOD_SERVICE);
                 imm.hideSoftInputFromWindow(getWindow().getDecorView().getWindowToken(), 0);
 
-
-
-
-//                Geocoder geocoder = new Geocoder(MapActivity.this);
-//                List<Address> addresses = new ArrayList<Address>();
-//                mMap.clear();
-//                try {
-//                    addresses = geocoder.getFromLocationName(searchString, 10);
-//                } catch (IOException e) {
-//                    e.printStackTrace();
-//                }
-//
-//                if(addresses.size() > 0){
-//                    for(int i=0; i<addresses.size(); i++){
-//                        Address address = addresses.get(i);
-//                        address.getLatitude();
-//                        address.getLongitude();
-//                        address.getThoroughfare();
-//                        LatLng latLng = new LatLng(address.getLatitude(), address.getLongitude());
-//                        mMap.addMarker(new MarkerOptions().position(latLng).title(address.getThoroughfare()).
-//                                icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
-//                    }
-//                }else{
-//                    Toast.makeText(MapActivity.this, "Place not found", Toast.LENGTH_SHORT).show();
-//                }
             }
 
             @Override
@@ -255,10 +229,10 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                                 hideLinearLayout.setVisibility(View.VISIBLE);
                             }else if(item.getItemId() == R.id.item_clear){
                                 mMap.clear();
-                                move_camera.setVisibility(View.INVISIBLE);
+                                move_camera_btns.setVisibility(View.INVISIBLE);
                                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
                                         new LatLng(mLastKnowLocation.getLatitude(), mLastKnowLocation.getLongitude()),
-                                        13));
+                                        DEFAULT_ZOOM_NEAR));
                                 latOfScreenCenter = mLastKnowLocation.getLatitude();
                                 lngOfScreenCenter = mLastKnowLocation.getLongitude();
                             }
@@ -273,6 +247,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             }
         });
 
+
+        //input prediction
         materialSearchBar.addTextChangeListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence s, int start, int count, int after) {
@@ -350,7 +326,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                         Log.i("mytag", "Place found: " + place.getName());
                         LatLng latLngOfPlace = place.getLatLng();
                         if(latLngOfPlace != null){
-                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLngOfPlace, DEFAULT_ZOOM));
+                            mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLngOfPlace, DEFAULT_ZOOM_FAR));
                             latOfScreenCenter = latLngOfPlace.latitude;
                             lngOfScreenCenter = latLngOfPlace.longitude;
                         }
@@ -388,6 +364,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
         hideLinearLayout = findViewById(R.id.text_set_return_number);
         editText = findViewById(R.id.edit_return_number);
+        //hideConfirm is the confirm button in the hide LinearLayout
         btn_hideConfirm = findViewById(R.id.btn_return_number_confirm);
         btn_hideConfirm.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -414,9 +391,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         });
 
 
-        move_camera = findViewById(R.id.move_camera);
-
-
+        move_camera_btns = findViewById(R.id.move_camera);
     }
 
 
@@ -426,7 +401,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         googleURL.append("&radius=" + ProximityRadius);
         googleURL.append("&keyword=" + place);
         googleURL.append("&sensor=true");
-        googleURL.append("&key=" + "AIzaSyC23Nfih07UvEoosLJ7f6k148YtxSReE-4");
+        googleURL.append("&key=" + getResources().getString(R.string.google_map_apikey));
 
         Log.d("MapActivity", "url = " + googleURL.toString());
         return googleURL.toString();
@@ -438,9 +413,6 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         mMap.setMyLocationEnabled(true);  //enable the location button
         mMap.getUiSettings().setMyLocationButtonEnabled(true);
 
-//        if(mPolygonOptions != null){
-//            mMap.addPolygon(mPolygonOptions);
-//        }
 
         //change the position of location button
         if(mapView != null && mapView.findViewById(Integer.parseInt("1")) != null){
@@ -449,7 +421,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
             RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams)locationButton.getLayoutParams();
             layoutParams.addRule(RelativeLayout.ALIGN_PARENT_TOP, 0);
             layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM, RelativeLayout.TRUE);
-            layoutParams.setMargins(0, 0, 40, 200);
+            layoutParams.setMargins(0, 0, 40, 230);
 
         }
 
@@ -497,6 +469,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                 return false;
             }
         });
+
+
     }
 
     @Override
@@ -518,7 +492,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                     if(mLastKnowLocation != null){
                         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
                                 new LatLng(mLastKnowLocation.getLatitude(), mLastKnowLocation.getLongitude()),
-                                DEFAULT_ZOOM));
+                                DEFAULT_ZOOM_FAR));
                         latOfScreenCenter = mLastKnowLocation.getLatitude();
                         lngOfScreenCenter = mLastKnowLocation.getLongitude();
                     }else{
@@ -536,7 +510,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                                 mLastKnowLocation = locationResult.getLastLocation();
                                 mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
                                         new LatLng(mLastKnowLocation.getLatitude(), mLastKnowLocation.getLongitude()),
-                                        DEFAULT_ZOOM));
+                                        DEFAULT_ZOOM_FAR));
                                 latOfScreenCenter = mLastKnowLocation.getLatitude();
                                 lngOfScreenCenter = mLastKnowLocation.getLongitude();
                                 mFusedLocationProviderClient.removeLocationUpdates(locationCallback); //don't know its use, maybe it makes app get location only once
@@ -551,6 +525,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         });
     }
 
+    //override the method in BottomSheetDialog,
+    //when click "confirm" or "save my option", this method would be called in BottomSheetDialog
     @Override
     public void onButtomClicked(HashMap<String, String> result, String command) {
         switch(command){
@@ -588,13 +564,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
                         }
                         PolygonOptions polygonOptions = new PolygonOptions();
                         polygonOptions.addAll(polygonCoordinates);
-//                        if(i == 0){
-//                            firstPolygon = polygonCoordinates;
-//                            firstResult = eachResult;
-//                        }
-
-                        //polygonOptions.fillColor(R.color.selected);
-                        Polygon polygon1 = mMap.addPolygon(polygonOptions);
+//                        Polygon polygon1 = mMap.addPolygon(polygonOptions);
+                        mMap.addPolygon(polygonOptions);
                         String content = getSelectedAreaInfo(eachResult, result);
                         latLng = getPolygonCenterPoint(polygonCoordinates);
                         allCenters.add(latLng);
@@ -607,12 +578,12 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
                     mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
                             new LatLng(allCenters.get(0).latitude, allCenters.get(0).longitude),
-                            13));
+                            DEFAULT_ZOOM_NEAR));
                     latOfScreenCenter = allCenters.get(0).latitude;
                     lngOfScreenCenter = allCenters.get(0).longitude;
 
                     if(allCenters.size() > 1){
-                        move_camera.setVisibility(View.VISIBLE);
+                        move_camera_btns.setVisibility(View.VISIBLE);
                         Button btn_prev = findViewById(R.id.btn_prev);
                         Button btn_next = findViewById(R.id.btn_next);
                         centerIndex = 0;
@@ -713,7 +684,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     public boolean onNavigationItemSelected(@NonNull final MenuItem menuItem) {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         int index = menuItem.getItemId();
-        Toast.makeText(this, "the id is" + index, Toast.LENGTH_SHORT).show();
+//        Toast.makeText(this, "the id is" + index, Toast.LENGTH_SHORT).show();
         HashMap<String, String> temp = savedOptions.get(index);
         String message = getFilterContent(temp);
         builder.setMessage(message);
@@ -722,6 +693,9 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         builder.setPositiveButton("open in filter", new DialogInterface.OnClickListener(){
             @Override
             public void onClick(DialogInterface dialog, int which) {
+                if(hideLinearLayout.getVisibility() == View.VISIBLE){
+                    hideLinearLayout.setVisibility(View.INVISIBLE);
+                }
                 int index = menuItem.getItemId();
                 mDrawerLayout.closeDrawer(Gravity.RIGHT);
                 activateBottomSheet(index);
@@ -753,6 +727,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         saveNavigationData();
     }
 
+    //when click an item in navigation drawer
     public void activateBottomSheet(int index){
         HashMap<String, String> temp = savedOptions.get(index);
         BottomSheetDialog bottomSheetDialog = new BottomSheetDialog();
@@ -883,7 +858,7 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         }
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
                 new LatLng(allCenters.get(centerIndex).latitude, allCenters.get(centerIndex).longitude),
-                13));
+                DEFAULT_ZOOM_NEAR));
         latOfScreenCenter = allCenters.get(centerIndex).latitude;
         lngOfScreenCenter = allCenters.get(centerIndex).longitude;
     }
@@ -896,24 +871,8 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
         }
         mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(
                 new LatLng(allCenters.get(centerIndex).latitude, allCenters.get(centerIndex).longitude),
-                13));
+                DEFAULT_ZOOM_NEAR));
         latOfScreenCenter = allCenters.get(centerIndex).latitude;
         lngOfScreenCenter = allCenters.get(centerIndex).longitude;
     }
 }
-//result[0] = "sa2_main16";
-//        result[1] = "sa2_name16";
-//        result[2] = "h_sale_price";
-//        result[3] ="h_rent_price";
-//        result[4] = "u_sale_price";
-//        result[5] = "u_rent_price";
-//        result[6] = "vehicle_num";
-//        result[7] ="median_income";
-//        result[8] ="children_education";
-//        result[9] ="immi_not_citizen";
-//        result[10] ="christian_pr100";
-//        result[11] ="buddhism_pr100";
-//        result[12] ="hinduism_pr100";
-//        result[13] = "judaism_pr100 ";
-//        result[14] ="islam_pr100";
-//        result[15] ="ohetr_religion_pr100";

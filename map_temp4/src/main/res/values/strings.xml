@@ -1,4 +1,5 @@
 <resources>
     <string name="app_name">Where to Live</string>
     <string name="title_activity_map">MapActivity</string>
+    <string name="google_map_apikey">AIzaSyC23Nfih07UvEoosLJ7f6k148YtxSReE-4</string>
 </resources>
