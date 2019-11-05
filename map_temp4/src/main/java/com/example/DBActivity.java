@@ -129,7 +129,7 @@ public class DBActivity {
         String result = "";
         for(int i =2; i<16;i++) {
             if (input[i] != 0) {
-                if(i == 7){
+                if(i == 7){ /*When multiplying the attribute "vehicle_num, make it negative."*/
                     int j = input[6];
                     result = result + " - " + j + "*" + columns[i];
                 }
