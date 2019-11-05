@@ -6,10 +6,9 @@ import android.util.Log;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-/***用于与DB有关的IO。
- * 最重要的三个方法在类的最下面，分别是
- * filterRequest, polygonRequest和centerRequest。
- * 关于DatabaseAccess实例的访问，这边可能需要你吧getApplicationContext()弄成static或者写一个getInstance()***/
+/***For database management, with parsing input and return filter search result.
+ * Methods filterRequest, polygonRequest and centerRequest are used by main activity。
+ ***/
 public class DBActivity {
     public DatabaseAccess access;
     private static String NUMBER_OF_SEARCH = "3";
@@ -27,8 +26,7 @@ public class DBActivity {
     public static void updateNum(String num){
         NUMBER_OF_SEARCH = num;
     }
-    /*用于将HashMap转成int[].
-     * 值得一提的是你那边judaism拼成了judasim，我按照你的写了，最后数据展示出来不要写错就好*/
+    /*Parse HashMap, transform input data into int[]*/
     private int[] parseInput(HashMap input){
         String[] result = new String[16];
         result[2] = input.get("housePrice").toString();
@@ -67,10 +65,14 @@ public class DBActivity {
         }
         return toInt(result);
     }
+
+    /*For identifying if the key does have a value*/
     private boolean notNull(HashMap input, String m){
         if (input.get(m) != null) return true;
         else return false;
     }
+
+    /*Transform String[] into int[]*/
     private int[] toInt(String[] columns){
         int[] result = new int[16];
         for (int i = 2;i<16;i++) {
@@ -79,7 +81,7 @@ public class DBActivity {
         return result;
     }
 
-    /*用于生成一个包含所有表字段的数组*/
+    /*Generate a list where all culumns contained*/
     private String[] getSa2() {
         String[] result = new String[16];
         result[0] = "sa2_main16";
@@ -101,7 +103,7 @@ public class DBActivity {
         return result;
     }
 
-
+    /*Get which column is required bu the request*/
     private String[] genColumn(int[] input){
         String[] columns = getSa2();
         int i; int num = 2;
@@ -125,9 +127,9 @@ public class DBActivity {
         }
         return result;
     }
-    /*用于获取权重在SQL中order by 的表达式。
-     * 值得一提的是只有vehicle_num这个字段是负值，
-     * 原因是车辆数量越多其traffic权值应该越低。*/
+
+    /*Generate the sentence following "ORDER BY" in SQL
+      Finalweight = (Weight(i)*Attribute(i))*/
     private String genWeight(int[] input){
         String[] columns = getSa2();
         String result = "";
@@ -147,7 +149,8 @@ public class DBActivity {
         return result;
     }
 
-
+    /*Get sa2_main16 attribute from the cursor
+        return with a String[] which contains all codes in the cursor*/
     public String[] getMain(Cursor cursor){
         int length = Integer.parseInt(NUMBER_OF_SEARCH);
         String[] result = new String[length];
@@ -167,7 +170,9 @@ public class DBActivity {
         return result;
     }
 
-
+    /*Using main code and column to start another query,
+        get the original values
+        ArrayList<HashMap<String,String>>*/
     public ArrayList<HashMap<String,String>> returnResult(String[] main, String[] column){
         ArrayList<HashMap<String, String>> result = new ArrayList();
         String[] keys = getSa2();
@@ -199,13 +204,11 @@ public class DBActivity {
 
     }
 
-    /*用于获取每一次filter检索的内容，输入的格式是一个HashMap。
-     * 返回的格式是一个ArrayList，其中每个元素是一个长度为输入检索key数量+2的float[]
-     * （多了sa2_main16和sa2_name16两个字段）
-     * 每个float[]中按照上面getSa2()方法中的顺序给出了结果
-     * 注意：返回的结果只包含了输入value不为0的字段，为0的字段会被跳过。这也便于展示数据。
-     * 目前最多返回一个区域的结果。
-     * 若检索结果为空，将返回null。*/
+    /*Used by filter query, invoked by main activity.
+     * Return a ArrayList<HashMap<String, String>>
+     * (sa2_main16和sa2_name16 are added)
+     * Only non-zero input will be returned easy for illustration。
+     */
     public ArrayList<HashMap<String, String>> filterRequest(HashMap map){
         int[] input = parseInput(map);
         String[] columns = genColumn(input);
@@ -220,9 +223,9 @@ public class DBActivity {
     }
 
 
-    /*用于获取polygon坐标。输入的是sa2_main16，即该polygon的编号。
-    返回格式是一个存储了float[2]的ArrayList。每一个数组是一对坐标。
-    若检索结果为空，将返回null。*/
+    /*For getting coordinates of a polygon with inputing the sa2_main16
+      return with an ArrayList which contains many float[2]
+      each list is a coordinate of a point*/
     public ArrayList polygonRequest(String main){
         Cursor cursor = access.queryCoordinate("Greater_MEL","sa2_main16 = "+main);
         ArrayList result = new ArrayList();
@@ -238,9 +241,9 @@ public class DBActivity {
         else {cursor.close();result = null;}
         return result;
     }
-    /*用于获取polygon中心点的坐标。输入的是sa2_main16，即该polygon的编号。
-    返回格式是一个float[2]。每一个数组是一对坐标。
-    若检索结果为空，将返回null。*/
+
+    /*For getting coordinates of the center with inputing the sa2_main16
+     return float[2] where each list is a coordinate of a point*/
     public float[] centerRequest(String main){
         float[] result = new float[2];
         Cursor cursor = access.queryCoordinate("Center","sa2_main16 = "+main);
